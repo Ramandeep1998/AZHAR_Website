@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="description" content="Browse SAIFI UDYOG's furniture catalogue — sofas, office furniture, beds, tables and more.">
   <title>Products | SAIFI UDYOG</title>
+  <link rel="icon" href="favicon.svg" type="image/svg+xml">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400&family=Outfit:wght@300;400;500;600&display=swap" rel="stylesheet">
@@ -12,7 +13,6 @@
 </head>
 <body>
 
-  <!-- Header -->
   <header class="header">
     <div class="container">
       <a href="index.html" class="logo">SAIFI <span>UDYOG</span></a>
@@ -31,7 +31,6 @@
     </div>
   </header>
 
-  <!-- Page Hero -->
   <section class="page-hero">
     <div class="container">
       <p class="section-label">Digital Showroom</p>
@@ -40,7 +39,18 @@
     </div>
   </section>
 
-  <!-- Category Navigation -->
+  <!-- Search -->
+  <section class="catalogue-search-bar">
+    <div class="container">
+      <div class="search-wrapper fade-in">
+        <svg class="search-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+        </svg>
+        <input type="search" id="product-search" placeholder="Search products — sofa, bed, office chair..." aria-label="Search products">
+      </div>
+    </div>
+  </section>
+
   <nav class="catalogue-nav">
     <div class="container" style="display: flex; flex-wrap: wrap; justify-content: center; gap: 0.75rem;">
       <a href="#sofa-seating" class="active">Sofa &amp; Seating</a>
@@ -50,451 +60,11 @@
     </div>
   </nav>
 
-  <!-- Sofa & Seating -->
-  <section id="sofa-seating" class="catalogue-section">
-    <div class="container">
-      <div class="catalogue-section-header fade-in">
-        <p class="section-label">Category</p>
-        <h2>Sofa &amp; Seating</h2>
-        <p>Comfortable and stylish seating solutions for living rooms and lounges.</p>
-      </div>
+  <div id="catalogue-loader" class="catalogue-loader">
+    <div class="spinner"></div> Loading products...
+  </div>
+  <div id="catalogue-container"></div>
 
-      <p class="subcategory-label">Sofa Sets</p>
-      <div class="product-grid">
-        <div class="product-card fade-in">
-          <div class="product-image">
-            <img src="https://images.unsplash.com/photo-1555041469-a586c61ea9bc?w=600&q=80" alt="Classic 3-Seater Sofa">
-          </div>
-          <div class="product-info">
-            <h3>Classic 3-Seater Sofa</h3>
-            <p>A timeless three-seater sofa with plush cushioning and elegant upholstery, perfect for modern living rooms.</p>
-            <a href="contact.html?product=Classic+3-Seater+Sofa" class="btn btn-wood btn-sm">Enquire Now</a>
-          </div>
-        </div>
-        <div class="product-card fade-in">
-          <div class="product-image">
-            <img src="https://images.unsplash.com/photo-1493663284031-b7e00a55f922?w=600&q=80" alt="L-Shaped Sectional Sofa">
-          </div>
-          <div class="product-info">
-            <h3>L-Shaped Sectional Sofa</h3>
-            <p>Spacious L-shaped design that maximises seating while adding a contemporary touch to your space.</p>
-            <a href="contact.html?product=L-Shaped+Sectional+Sofa" class="btn btn-wood btn-sm">Enquire Now</a>
-          </div>
-        </div>
-        <div class="product-card fade-in">
-          <div class="product-image">
-            <img src="https://images.unsplash.com/photo-1540574163026-d643e9bcaad3?w=600&q=80" alt="Compact 2-Seater Sofa">
-          </div>
-          <div class="product-info">
-            <h3>Compact 2-Seater Sofa</h3>
-            <p>Ideal for smaller spaces, this two-seater offers comfort without compromising on style.</p>
-            <a href="contact.html?product=Compact+2-Seater+Sofa" class="btn btn-wood btn-sm">Enquire Now</a>
-          </div>
-        </div>
-      </div>
-
-      <p class="subcategory-label">Sofa Chairs</p>
-      <div class="product-grid">
-        <div class="product-card fade-in">
-          <div class="product-image">
-            <img src="https://images.unsplash.com/photo-1567538096630-e0c55bd6374c?w=600&q=80" alt="Accent Armchair">
-          </div>
-          <div class="product-info">
-            <h3>Accent Armchair</h3>
-            <p>A statement armchair with refined curves and soft fabric, designed for reading corners and lounges.</p>
-            <a href="contact.html?product=Accent+Armchair" class="btn btn-wood btn-sm">Enquire Now</a>
-          </div>
-        </div>
-        <div class="product-card fade-in">
-          <div class="product-image">
-            <img src="https://images.unsplash.com/photo-1586023492125-27b2c045efd7?w=600&q=80" alt="Recliner Sofa Chair">
-          </div>
-          <div class="product-info">
-            <h3>Recliner Sofa Chair</h3>
-            <p>Relax in comfort with this reclining sofa chair featuring premium padding and smooth mechanism.</p>
-            <a href="contact.html?product=Recliner+Sofa+Chair" class="btn btn-wood btn-sm">Enquire Now</a>
-          </div>
-        </div>
-      </div>
-
-      <p class="subcategory-label">Lounge Chairs</p>
-      <div class="product-grid">
-        <div class="product-card fade-in">
-          <div class="product-image">
-            <img src="https://images.unsplash.com/photo-1592078615290-033ee584e267?w=600&q=80" alt="Modern Lounge Chair">
-          </div>
-          <div class="product-info">
-            <h3>Modern Lounge Chair</h3>
-            <p>Sleek lounge chair with minimalist design, perfect for waiting areas and modern interiors.</p>
-            <a href="contact.html?product=Modern+Lounge+Chair" class="btn btn-wood btn-sm">Enquire Now</a>
-          </div>
-        </div>
-        <div class="product-card fade-in">
-          <div class="product-image">
-            <img src="https://images.unsplash.com/photo-1631049307264-da0ec9d70304?w=600&q=80" alt="Wingback Lounge Chair">
-          </div>
-          <div class="product-info">
-            <h3>Wingback Lounge Chair</h3>
-            <p>Classic wingback silhouette with deep seating for ultimate relaxation in any room.</p>
-            <a href="contact.html?product=Wingback+Lounge+Chair" class="btn btn-wood btn-sm">Enquire Now</a>
-          </div>
-        </div>
-      </div>
-
-      <p class="subcategory-label">Other Seating</p>
-      <div class="product-grid">
-        <div class="product-card fade-in">
-          <div class="product-image">
-            <img src="https://images.unsplash.com/photo-1506439773649-6e0eb8cfb237?w=600&q=80" alt="Bench Seating">
-          </div>
-          <div class="product-info">
-            <h3>Bench Seating</h3>
-            <p>Versatile bench seating suitable for entryways, dining areas and commercial spaces.</p>
-            <a href="contact.html?product=Bench+Seating" class="btn btn-wood btn-sm">Enquire Now</a>
-          </div>
-        </div>
-        <div class="product-card fade-in">
-          <div class="product-image">
-            <img src="https://images.unsplash.com/photo-1503602642458-232111445657?w=600&q=80" alt="Ottoman Pouf">
-          </div>
-          <div class="product-info">
-            <h3>Ottoman Pouf</h3>
-            <p>Soft ottoman pouf that doubles as extra seating or a footrest for your sofa set.</p>
-            <a href="contact.html?product=Ottoman+Pouf" class="btn btn-wood btn-sm">Enquire Now</a>
-          </div>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <!-- Office Furniture -->
-  <section id="office-furniture" class="catalogue-section">
-    <div class="container">
-      <div class="catalogue-section-header fade-in">
-        <p class="section-label">Category</p>
-        <h2>Office Furniture</h2>
-        <p>Functional and ergonomic furniture designed for productive workspaces.</p>
-      </div>
-
-      <p class="subcategory-label">Office Chairs</p>
-      <div class="product-grid">
-        <div class="product-card fade-in">
-          <div class="product-image">
-            <img src="https://images.unsplash.com/photo-1580480055273-228ff5388ef8?w=600&q=80" alt="Executive Office Chair">
-          </div>
-          <div class="product-info">
-            <h3>Executive Office Chair</h3>
-            <p>High-back executive chair with lumbar support, adjustable height and premium upholstery.</p>
-            <a href="contact.html?product=Executive+Office+Chair" class="btn btn-wood btn-sm">Enquire Now</a>
-          </div>
-        </div>
-        <div class="product-card fade-in">
-          <div class="product-image">
-            <img src="https://images.unsplash.com/photo-1592078615290-033ee584e267?w=600&q=80" alt="Ergonomic Task Chair">
-          </div>
-          <div class="product-info">
-            <h3>Ergonomic Task Chair</h3>
-            <p>Designed for long hours of work with breathable mesh back and adjustable armrests.</p>
-            <a href="contact.html?product=Ergonomic+Task+Chair" class="btn btn-wood btn-sm">Enquire Now</a>
-          </div>
-        </div>
-        <div class="product-card fade-in">
-          <div class="product-image">
-            <img src="https://images.unsplash.com/photo-1611269146515-503b3885b1fa?w=600&q=80" alt="Visitor Chair">
-          </div>
-          <div class="product-info">
-            <h3>Visitor Chair</h3>
-            <p>Comfortable visitor seating for reception areas, meeting rooms and waiting lounges.</p>
-            <a href="contact.html?product=Visitor+Chair" class="btn btn-wood btn-sm">Enquire Now</a>
-          </div>
-        </div>
-      </div>
-
-      <p class="subcategory-label">Office Desks</p>
-      <div class="product-grid">
-        <div class="product-card fade-in">
-          <div class="product-image">
-            <img src="https://images.unsplash.com/photo-1518455027359-f3f8164ba6bd?w=600&q=80" alt="Executive Desk">
-          </div>
-          <div class="product-info">
-            <h3>Executive Desk</h3>
-            <p>Spacious executive desk with built-in storage drawers and a clean, professional finish.</p>
-            <a href="contact.html?product=Executive+Desk" class="btn btn-wood btn-sm">Enquire Now</a>
-          </div>
-        </div>
-        <div class="product-card fade-in">
-          <div class="product-image">
-            <img src="https://images.unsplash.com/photo-1595526114035-0d45ed16cfbf?w=600&q=80" alt="Computer Desk">
-          </div>
-          <div class="product-info">
-            <h3>Computer Desk</h3>
-            <p>Compact computer desk with cable management and ample surface area for monitors and accessories.</p>
-            <a href="contact.html?product=Computer+Desk" class="btn btn-wood btn-sm">Enquire Now</a>
-          </div>
-        </div>
-      </div>
-
-      <p class="subcategory-label">Workstations</p>
-      <div class="product-grid">
-        <div class="product-card fade-in">
-          <div class="product-image">
-            <img src="https://images.unsplash.com/photo-1497366216548-37526070297c?w=600&q=80" alt="Linear Workstation">
-          </div>
-          <div class="product-info">
-            <h3>Linear Workstation</h3>
-            <p>Modular linear workstation system for open-plan offices with privacy panels and storage.</p>
-            <a href="contact.html?product=Linear+Workstation" class="btn btn-wood btn-sm">Enquire Now</a>
-          </div>
-        </div>
-        <div class="product-card fade-in">
-          <div class="product-image">
-            <img src="https://images.unsplash.com/photo-1497366811353-6870744d04b2?w=600&q=80" alt="L-Shaped Workstation">
-          </div>
-          <div class="product-info">
-            <h3>L-Shaped Workstation</h3>
-            <p>Corner workstation layout offering maximum desk space for multitasking professionals.</p>
-            <a href="contact.html?product=L-Shaped+Workstation" class="btn btn-wood btn-sm">Enquire Now</a>
-          </div>
-        </div>
-      </div>
-
-      <p class="subcategory-label">Conference Tables</p>
-      <div class="product-grid">
-        <div class="product-card fade-in">
-          <div class="product-image">
-            <img src="https://images.unsplash.com/photo-1431540015161-0bf868a2d407?w=600&q=80" alt="Boardroom Conference Table">
-          </div>
-          <div class="product-info">
-            <h3>Boardroom Conference Table</h3>
-            <p>Large conference table with premium wood finish, ideal for boardrooms and meeting halls.</p>
-            <a href="contact.html?product=Boardroom+Conference+Table" class="btn btn-wood btn-sm">Enquire Now</a>
-          </div>
-        </div>
-        <div class="product-card fade-in">
-          <div class="product-image">
-            <img src="https://images.unsplash.com/photo-1556761175-5973dc0f32e7?w=600&q=80" alt="Modular Meeting Table">
-          </div>
-          <div class="product-info">
-            <h3>Modular Meeting Table</h3>
-            <p>Flexible modular meeting table that can be configured for different group sizes.</p>
-            <a href="contact.html?product=Modular+Meeting+Table" class="btn btn-wood btn-sm">Enquire Now</a>
-          </div>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <!-- Home Furniture -->
-  <section id="home-furniture" class="catalogue-section">
-    <div class="container">
-      <div class="catalogue-section-header fade-in">
-        <p class="section-label">Category</p>
-        <h2>Home Furniture</h2>
-        <p>Beautiful furniture pieces to make every room in your home feel complete.</p>
-      </div>
-
-      <p class="subcategory-label">Beds</p>
-      <div class="product-grid">
-        <div class="product-card fade-in">
-          <div class="product-image">
-            <img src="https://images.unsplash.com/photo-1505693416388-ac5ce068fe85?w=600&q=80" alt="King Size Bed">
-          </div>
-          <div class="product-info">
-            <h3>King Size Bed</h3>
-            <p>Elegant king size bed frame with a sturdy headboard and premium wood construction.</p>
-            <a href="contact.html?product=King+Size+Bed" class="btn btn-wood btn-sm">Enquire Now</a>
-          </div>
-        </div>
-        <div class="product-card fade-in">
-          <div class="product-image">
-            <img src="https://images.unsplash.com/photo-1522771739844-6ce9f6e380c0?w=600&q=80" alt="Queen Size Bed">
-          </div>
-          <div class="product-info">
-            <h3>Queen Size Bed</h3>
-            <p>Stylish queen size bed with clean lines and a warm finish for modern bedrooms.</p>
-            <a href="contact.html?product=Queen+Size+Bed" class="btn btn-wood btn-sm">Enquire Now</a>
-          </div>
-        </div>
-        <div class="product-card fade-in">
-          <div class="product-image">
-            <img src="https://images.unsplash.com/photo-1631049307264-da0ec9d70304?w=600&q=80" alt="Single Bed">
-          </div>
-          <div class="product-info">
-            <h3>Single Bed</h3>
-            <p>Compact single bed perfect for guest rooms, children's rooms and studio apartments.</p>
-            <a href="contact.html?product=Single+Bed" class="btn btn-wood btn-sm">Enquire Now</a>
-          </div>
-        </div>
-      </div>
-
-      <p class="subcategory-label">Tables</p>
-      <div class="product-grid">
-        <div class="product-card fade-in">
-          <div class="product-image">
-            <img src="https://images.unsplash.com/photo-1532372320572-cda25653a26d?w=600&q=80" alt="Dining Table">
-          </div>
-          <div class="product-info">
-            <h3>Dining Table</h3>
-            <p>Solid wood dining table with seating for six, crafted for family meals and gatherings.</p>
-            <a href="contact.html?product=Dining+Table" class="btn btn-wood btn-sm">Enquire Now</a>
-          </div>
-        </div>
-        <div class="product-card fade-in">
-          <div class="product-image">
-            <img src="https://images.unsplash.com/photo-1611269146515-503b3885b1fa?w=600&q=80" alt="Coffee Table">
-          </div>
-          <div class="product-info">
-            <h3>Coffee Table</h3>
-            <p>Low-profile coffee table with a smooth surface, complementing any living room setup.</p>
-            <a href="contact.html?product=Coffee+Table" class="btn btn-wood btn-sm">Enquire Now</a>
-          </div>
-        </div>
-        <div class="product-card fade-in">
-          <div class="product-image">
-            <img src="https://images.unsplash.com/photo-1594620302200-9a762244a156?w=600&q=80" alt="Side Table">
-          </div>
-          <div class="product-info">
-            <h3>Side Table</h3>
-            <p>Compact side table ideal for placing beside sofas, beds or accent chairs.</p>
-            <a href="contact.html?product=Side+Table" class="btn btn-wood btn-sm">Enquire Now</a>
-          </div>
-        </div>
-      </div>
-
-      <p class="subcategory-label">Chairs</p>
-      <div class="product-grid">
-        <div class="product-card fade-in">
-          <div class="product-image">
-            <img src="https://images.unsplash.com/photo-1503602642458-232111445657?w=600&q=80" alt="Dining Chair">
-          </div>
-          <div class="product-info">
-            <h3>Dining Chair</h3>
-            <p>Comfortable dining chair with cushioned seat and durable wooden frame.</p>
-            <a href="contact.html?product=Dining+Chair" class="btn btn-wood btn-sm">Enquire Now</a>
-          </div>
-        </div>
-        <div class="product-card fade-in">
-          <div class="product-image">
-            <img src="https://images.unsplash.com/photo-1567538096630-e0c55bd6374c?w=600&q=80" alt="Accent Chair">
-          </div>
-          <div class="product-info">
-            <h3>Accent Chair</h3>
-            <p>Stylish accent chair that adds character and extra seating to any room.</p>
-            <a href="contact.html?product=Accent+Chair" class="btn btn-wood btn-sm">Enquire Now</a>
-          </div>
-        </div>
-      </div>
-
-      <p class="subcategory-label">Storage Furniture</p>
-      <div class="product-grid">
-        <div class="product-card fade-in">
-          <div class="product-image">
-            <img src="https://images.unsplash.com/photo-1595428774223-ef5262417080?w=600&q=80" alt="Wardrobe">
-          </div>
-          <div class="product-info">
-            <h3>Wardrobe</h3>
-            <p>Spacious wardrobe with multiple compartments for organised clothing storage.</p>
-            <a href="contact.html?product=Wardrobe" class="btn btn-wood btn-sm">Enquire Now</a>
-          </div>
-        </div>
-        <div class="product-card fade-in">
-          <div class="product-image">
-            <img src="https://images.unsplash.com/photo-1598300042247-d088f8ab3a91?w=600&q=80" alt="Chest of Drawers">
-          </div>
-          <div class="product-info">
-            <h3>Chest of Drawers</h3>
-            <p>Multi-drawer chest with smooth handles and a refined wood finish for bedrooms.</p>
-            <a href="contact.html?product=Chest+of+Drawers" class="btn btn-wood btn-sm">Enquire Now</a>
-          </div>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <!-- Other Furniture -->
-  <section id="other-furniture" class="catalogue-section">
-    <div class="container">
-      <div class="catalogue-section-header fade-in">
-        <p class="section-label">Category</p>
-        <h2>Other Furniture</h2>
-        <p>Additional furniture solutions including storage, shelving and custom pieces.</p>
-      </div>
-
-      <p class="subcategory-label">Cabinets</p>
-      <div class="product-grid">
-        <div class="product-card fade-in">
-          <div class="product-image">
-            <img src="https://images.unsplash.com/photo-1595428774223-ef5262417080?w=600&q=80" alt="Display Cabinet">
-          </div>
-          <div class="product-info">
-            <h3>Display Cabinet</h3>
-            <p>Glass-front display cabinet for showcasing collectibles, books and decorative items.</p>
-            <a href="contact.html?product=Display+Cabinet" class="btn btn-wood btn-sm">Enquire Now</a>
-          </div>
-        </div>
-        <div class="product-card fade-in">
-          <div class="product-image">
-            <img src="https://images.unsplash.com/photo-1616486338812-3dadae4b4ace?w=600&q=80" alt="Storage Cabinet">
-          </div>
-          <div class="product-info">
-            <h3>Storage Cabinet</h3>
-            <p>Multi-purpose storage cabinet with adjustable shelves for home or office use.</p>
-            <a href="contact.html?product=Storage+Cabinet" class="btn btn-wood btn-sm">Enquire Now</a>
-          </div>
-        </div>
-      </div>
-
-      <p class="subcategory-label">Shelves</p>
-      <div class="product-grid">
-        <div class="product-card fade-in">
-          <div class="product-image">
-            <img src="https://images.unsplash.com/photo-1594620302200-9a762244a156?w=600&q=80" alt="Wall Shelf Unit">
-          </div>
-          <div class="product-info">
-            <h3>Wall Shelf Unit</h3>
-            <p>Floating wall shelf unit for displaying books, plants and decorative accents.</p>
-            <a href="contact.html?product=Wall+Shelf+Unit" class="btn btn-wood btn-sm">Enquire Now</a>
-          </div>
-        </div>
-        <div class="product-card fade-in">
-          <div class="product-image">
-            <img src="https://images.unsplash.com/photo-1586023492125-27b2c045efd7?w=600&q=80" alt="Bookcase">
-          </div>
-          <div class="product-info">
-            <h3>Bookcase</h3>
-            <p>Tall bookcase with multiple tiers, perfect for libraries, studies and living rooms.</p>
-            <a href="contact.html?product=Bookcase" class="btn btn-wood btn-sm">Enquire Now</a>
-          </div>
-        </div>
-      </div>
-
-      <p class="subcategory-label">Custom Furniture</p>
-      <div class="product-grid">
-        <div class="product-card fade-in">
-          <div class="product-image">
-            <img src="https://images.unsplash.com/photo-1617806118233-18e1de247200?w=600&q=80" alt="Custom Furniture">
-          </div>
-          <div class="product-info">
-            <h3>Custom Furniture</h3>
-            <p>Need something unique? We create custom furniture tailored to your space, style and requirements.</p>
-            <a href="contact.html?product=Custom+Furniture" class="btn btn-wood btn-sm">Enquire Now</a>
-          </div>
-        </div>
-        <div class="product-card fade-in">
-          <div class="product-image">
-            <img src="https://images.unsplash.com/photo-1618221197170-2f1629a2d1ee?w=600&q=80" alt="Bespoke Interior Solutions">
-          </div>
-          <div class="product-info">
-            <h3>Bespoke Interior Solutions</h3>
-            <p>Complete interior furniture solutions designed and manufactured to fit your specific needs.</p>
-            <a href="contact.html?product=Bespoke+Interior+Solutions" class="btn btn-wood btn-sm">Enquire Now</a>
-          </div>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <!-- Footer -->
   <footer class="footer">
     <div class="container">
       <div class="footer-grid">
@@ -514,10 +84,10 @@
         <div>
           <h4>Contact</h4>
           <ul class="footer-contact">
-            <li>Phone: [PHONE NUMBER]</li>
-            <li>WhatsApp: [WHATSAPP NUMBER]</li>
-            <li>Email: [EMAIL]</li>
-            <li>Address: [ADDRESS]</li>
+            <li>Phone: <span data-contact="phone"></span></li>
+            <li>WhatsApp: <span data-contact="whatsapp"></span></li>
+            <li>Email: <span data-contact="email"></span></li>
+            <li>Address: <span data-contact="address"></span></li>
           </ul>
         </div>
       </div>
@@ -527,6 +97,13 @@
     </div>
   </footer>
 
+  <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore-compat.js"></script>
+  <script src="js/config.js"></script>
+  <script src="js/firebase-config.js"></script>
+  <script src="js/products-data.js"></script>
+  <script src="js/db.js"></script>
+  <script src="js/catalogue.js"></script>
   <script src="js/main.js"></script>
 </body>
 </html>

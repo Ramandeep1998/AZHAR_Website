@@ -1,12 +1,58 @@
 /* SAIFI UDYOG — Main JavaScript */
 
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', async () => {
+  await initSiteConfig();
   initHeader();
   initMobileNav();
   initScrollAnimations();
   initCatalogueNav();
   initContactForm();
+  initWhatsAppFloat();
+  initBackToTop();
+  initProductLightbox();
+  prefillEnquiryFromUrl();
 });
+
+/* ---- Site Config (contact info from Firebase cloud) ---- */
+async function initSiteConfig() {
+  if (typeof SITE_CONFIG === 'undefined') return;
+
+  let config = { ...SITE_CONFIG };
+  if (typeof getSiteSettings === 'function') {
+    try {
+      config = await getSiteSettings();
+    } catch (e) { /* use defaults */ }
+  }
+  window.SITE_RUNTIME_CONFIG = config;
+
+  document.querySelectorAll('[data-contact]').forEach(el => {
+    const key = el.dataset.contact;
+    const value = config[key];
+    if (!value) return;
+
+    if (el.tagName === 'A') {
+      el.textContent = value;
+      if (key === 'email') el.href = `mailto:${value}`;
+      if (key === 'phone') el.href = `tel:${value.replace(/\s/g, '')}`;
+    } else {
+      el.textContent = value;
+    }
+  });
+
+  const waBtn = document.querySelector('[data-whatsapp-btn]');
+  if (waBtn && config.whatsappNumber) {
+    waBtn.href = `https://wa.me/${config.whatsappNumber}`;
+    waBtn.style.display = '';
+  } else if (waBtn) {
+    waBtn.style.display = 'none';
+  }
+
+  const mapContainer = document.getElementById('map-container');
+  if (mapContainer && config.mapsEmbedUrl) {
+    mapContainer.innerHTML = `<iframe src="${config.mapsEmbedUrl}" width="100%" height="100%" style="border:0;" allowfullscreen loading="lazy" referrerpolicy="no-referrer-when-downgrade" title="SAIFI UDYOG location"></iframe>`;
+    mapContainer.classList.remove('map-placeholder');
+  }
+}
 
 /* ---- Sticky Header ---- */
 function initHeader() {
@@ -27,19 +73,21 @@ function initMobileNav() {
   toggle.addEventListener('click', () => {
     nav.classList.toggle('open');
     toggle.classList.toggle('active');
+    document.body.classList.toggle('nav-open', nav.classList.contains('open'));
   });
 
   document.querySelectorAll('.nav-links a').forEach(link => {
     link.addEventListener('click', () => {
       nav.classList.remove('open');
       toggle.classList.remove('active');
+      document.body.classList.remove('nav-open');
     });
   });
 }
 
 /* ---- Scroll Animations ---- */
 function initScrollAnimations() {
-  const elements = document.querySelectorAll('.fade-in');
+  const elements = document.querySelectorAll('.fade-in:not(.visible)');
   if (!elements.length) return;
 
   const observer = new IntersectionObserver(
@@ -51,7 +99,7 @@ function initScrollAnimations() {
         }
       });
     },
-    { threshold: 0.15, rootMargin: '0px 0px -40px 0px' }
+    { threshold: 0.12, rootMargin: '0px 0px -40px 0px' }
   );
 
   elements.forEach(el => observer.observe(el));
@@ -60,7 +108,7 @@ function initScrollAnimations() {
 /* ---- Catalogue Category Navigation ---- */
 function initCatalogueNav() {
   const navLinks = document.querySelectorAll('.catalogue-nav a');
-  const sections = document.querySelectorAll('.catalogue-section');
+  const sections = document.querySelectorAll('.catalogue-section[id]');
 
   if (!navLinks.length || !sections.length) return;
 
@@ -69,7 +117,7 @@ function initCatalogueNav() {
       e.preventDefault();
       const target = document.querySelector(link.getAttribute('href'));
       if (target) {
-        const offset = 140;
+        const offset = 160;
         const top = target.getBoundingClientRect().top + window.scrollY - offset;
         window.scrollTo({ top, behavior: 'smooth' });
       }
@@ -87,7 +135,7 @@ function initCatalogueNav() {
         }
       });
     },
-    { threshold: 0.3, rootMargin: '-140px 0px -50% 0px' }
+    { threshold: 0.2, rootMargin: '-160px 0px -55% 0px' }
   );
 
   sections.forEach(section => sectionObserver.observe(section));
@@ -98,27 +146,223 @@ function initContactForm() {
   const form = document.getElementById('contact-form');
   if (!form) return;
 
-  form.addEventListener('submit', (e) => {
+  form.addEventListener('submit', async (e) => {
     e.preventDefault();
 
     const name = form.querySelector('[name="name"]').value.trim();
     const mobile = form.querySelector('[name="mobile"]').value.trim();
     const email = form.querySelector('[name="email"]').value.trim();
     const message = form.querySelector('[name="message"]').value.trim();
+    const product = new URLSearchParams(window.location.search).get('product') || '';
 
     if (!name || !mobile || !message) {
-      alert('Please fill in all required fields.');
+      showFormError('Please fill in all required fields.');
       return;
     }
 
-    form.style.display = 'none';
-    const success = document.querySelector('.form-success');
-    if (success) success.classList.add('show');
+    const submitBtn = form.querySelector('[type="submit"]');
+    const waBtn = document.getElementById('submit-whatsapp');
+    if (submitBtn) {
+      submitBtn.disabled = true;
+      submitBtn.textContent = 'Sending...';
+    }
+    if (waBtn) waBtn.disabled = true;
+
+    const cfg = window.SITE_RUNTIME_CONFIG || SITE_CONFIG;
+    const enquiry = { name, mobile, email, message, product };
+
+    try {
+      // 1. Save to Firebase (owner sees in Admin → Enquiries)
+      if (typeof saveEnquiry === 'function') {
+        await saveEnquiry(enquiry);
+      }
+
+      // 2. Send email notification via Web3Forms (if configured in admin settings)
+      if (cfg.web3formsKey) {
+        const fd = new FormData();
+        fd.append('access_key', cfg.web3formsKey);
+        fd.append('subject', `New Enquiry from ${name} — SAIFI UDYOG`);
+        fd.append('from_name', name);
+        fd.append('email', email || 'no-reply@saifiudyog.com');
+        fd.append('message', formatEnquiryText(enquiry));
+        await fetch('https://api.web3forms.com/submit', { method: 'POST', body: fd });
+      } else if (cfg.formEndpoint) {
+        const res = await fetch(cfg.formEndpoint, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
+          body: JSON.stringify(enquiry)
+        });
+        if (!res.ok) throw new Error('Email send failed');
+      }
+
+      // 3. Open WhatsApp to owner (if configured)
+      if (cfg.whatsappNumber) {
+        const text = encodeURIComponent(formatEnquiryText(enquiry, true));
+        window.open(`https://wa.me/${cfg.whatsappNumber}?text=${text}`, '_blank');
+        showFormSuccess('Thank you! Your enquiry was sent. WhatsApp has opened — tap Send to notify us instantly.');
+      } else {
+        showFormSuccess('Thank you! Your enquiry has been received. We will contact you shortly.');
+      }
+
+      form.reset();
+    } catch (err) {
+      console.error(err);
+      if (cfg.whatsappNumber) {
+        const text = encodeURIComponent(formatEnquiryText(enquiry, true));
+        window.open(`https://wa.me/${cfg.whatsappNumber}?text=${text}`, '_blank');
+        showFormSuccess('Enquiry saved. WhatsApp opened — please tap Send to reach us.');
+      } else {
+        showFormError('Could not send enquiry. Please call or email us directly.');
+      }
+    } finally {
+      if (submitBtn) {
+        submitBtn.disabled = false;
+        submitBtn.textContent = 'Send Enquiry';
+      }
+      if (waBtn) waBtn.disabled = false;
+    }
+  });
+
+  // Direct WhatsApp button
+  const waDirect = document.getElementById('submit-whatsapp');
+  if (waDirect) {
+    waDirect.addEventListener('click', () => {
+      const cfg = window.SITE_RUNTIME_CONFIG || SITE_CONFIG;
+      if (!cfg.whatsappNumber) {
+        alert('WhatsApp number not configured yet. Please use the form or call us.');
+        return;
+      }
+      const name = document.getElementById('name')?.value.trim() || '';
+      const mobile = document.getElementById('mobile')?.value.trim() || '';
+      const email = document.getElementById('email')?.value.trim() || '';
+      const message = document.getElementById('message')?.value.trim() || 'Hello, I would like to enquire about your furniture.';
+      const product = new URLSearchParams(window.location.search).get('product') || '';
+      const text = encodeURIComponent(formatEnquiryText({ name, mobile, email, message, product }, true));
+      window.open(`https://wa.me/${cfg.whatsappNumber}?text=${text}`, '_blank');
+    });
+  }
+}
+
+function formatEnquiryText(data, forWhatsApp) {
+  const lines = [
+    forWhatsApp ? '*New Furniture Enquiry — SAIFI UDYOG*' : 'New Furniture Enquiry — SAIFI UDYOG',
+    '',
+    `Name: ${data.name}`,
+    `Mobile: ${data.mobile}`,
+    data.email ? `Email: ${data.email}` : '',
+    data.product ? `Product: ${data.product.replace(/\+/g, ' ')}` : '',
+    '',
+    'Message:',
+    data.message
+  ].filter(Boolean);
+  return lines.join(forWhatsApp ? '\n' : '\n');
+}
+
+function showFormSuccess(customMessage) {
+  const form = document.getElementById('contact-form');
+  const success = document.querySelector('.form-success');
+  if (form) form.style.display = 'none';
+  if (success) {
+    if (customMessage) {
+      const p = success.querySelector('p');
+      if (p) p.textContent = customMessage;
+    }
+    success.classList.add('show');
+  }
+}
+
+function showFormError(msg) {
+  alert(msg);
+}
+
+function prefillEnquiryFromUrl() {
+  const params = new URLSearchParams(window.location.search);
+  const product = params.get('product');
+  if (!product) return;
+
+  const messageField = document.getElementById('message');
+  if (messageField) {
+    messageField.value = `I would like to enquire about: ${product.replace(/\+/g, ' ')}`;
+  }
+}
+
+/* ---- Floating WhatsApp Button ---- */
+function initWhatsAppFloat() {
+  const waNum = (window.SITE_RUNTIME_CONFIG || SITE_CONFIG)?.whatsappNumber;
+  if (!waNum) return;
+  if (document.querySelector('.whatsapp-float')) return;
+
+  const link = document.createElement('a');
+  link.href = `https://wa.me/${waNum}`;
+  link.className = 'whatsapp-float';
+  link.target = '_blank';
+  link.rel = 'noopener';
+  link.setAttribute('aria-label', 'Chat on WhatsApp');
+  link.innerHTML = `
+    <svg viewBox="0 0 24 24" fill="currentColor" width="28" height="28">
+      <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.435 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/>
+    </svg>`;
+  document.body.appendChild(link);
+}
+
+/* ---- Back to Top ---- */
+function initBackToTop() {
+  const btn = document.createElement('button');
+  btn.className = 'back-to-top';
+  btn.setAttribute('aria-label', 'Back to top');
+  btn.innerHTML = '↑';
+  document.body.appendChild(btn);
+
+  window.addEventListener('scroll', () => {
+    btn.classList.toggle('visible', window.scrollY > 500);
+  });
+
+  btn.addEventListener('click', () => {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   });
 }
 
-/* ---- Enquire Now ---- */
-function enquireProduct(productName) {
-  const params = new URLSearchParams({ product: productName });
-  window.location.href = `contact.html?${params.toString()}`;
+/* ---- Product Image Lightbox ---- */
+function initProductLightbox() {
+  document.querySelectorAll('.lightbox-trigger').forEach(trigger => {
+    trigger.addEventListener('click', () => {
+      openLightbox(trigger.dataset.src, trigger.dataset.alt);
+    });
+  });
+}
+
+function openLightbox(src, alt) {
+  let overlay = document.querySelector('.lightbox-overlay');
+  if (!overlay) {
+    overlay = document.createElement('div');
+    overlay.className = 'lightbox-overlay';
+    overlay.innerHTML = `
+      <button class="lightbox-close" aria-label="Close">&times;</button>
+      <img class="lightbox-image" src="" alt="">
+      <p class="lightbox-caption"></p>`;
+    document.body.appendChild(overlay);
+
+    overlay.addEventListener('click', (e) => {
+      if (e.target === overlay || e.target.classList.contains('lightbox-close')) {
+        closeLightbox();
+      }
+    });
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') closeLightbox();
+    });
+  }
+
+  overlay.querySelector('.lightbox-image').src = src.replace('w=600', 'w=1200');
+  overlay.querySelector('.lightbox-image').alt = alt;
+  overlay.querySelector('.lightbox-caption').textContent = alt;
+  overlay.classList.add('active');
+  document.body.style.overflow = 'hidden';
+}
+
+function closeLightbox() {
+  const overlay = document.querySelector('.lightbox-overlay');
+  if (overlay) {
+    overlay.classList.remove('active');
+    document.body.style.overflow = '';
+  }
 }

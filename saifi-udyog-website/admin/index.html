@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin Login | SAIFI UDYOG</title>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600&family=Outfit:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="admin.css">
+</head>
+<body class="admin-body">
+
+  <div class="admin-login-page">
+    <div class="login-card">
+      <p class="logo">SAIFI <span>UDYOG</span></p>
+      <p class="login-subtitle">Business Owner Panel</p>
+      <h2>Admin Login</h2>
+
+      <div id="login-alert" class="admin-alert error" style="display:none;"></div>
+
+      <form id="login-form">
+        <div class="admin-form-group">
+          <label for="email">Email</label>
+          <input type="email" id="email" name="email" required placeholder="owner@saifiudyog.com" autocomplete="email">
+        </div>
+        <div class="admin-form-group">
+          <label for="password">Password</label>
+          <input type="password" id="password" name="password" required placeholder="Your password" autocomplete="current-password">
+        </div>
+        <button type="submit" class="admin-btn admin-btn-primary" style="width:100%;justify-content:center;padding:0.9rem;">
+          Sign In
+        </button>
+      </form>
+
+      <p style="text-align:center;margin-top:1.5rem;font-size:0.8rem;">
+        <a href="../index.html" style="color:var(--admin-accent);">← Back to Website</a>
+        &nbsp;·&nbsp;
+        <a href="setup.html" style="color:var(--admin-accent);">Firebase Setup Help</a>
+      </p>
+    </div>
+  </div>
+
+  <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-storage-compat.js"></script>
+  <script src="../js/firebase-config.js"></script>
+  <script src="../js/db.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      const alertEl = document.getElementById('login-alert');
+      const form = document.getElementById('login-form');
+
+      if (!FIREBASE_ENABLED) {
+        alertEl.style.display = 'block';
+        alertEl.innerHTML = 'Firebase not configured. See <a href="setup.html">Setup Help</a>.';
+        form.querySelector('button').disabled = true;
+        return;
+      }
+
+      initFirebase();
+      onAuthChange(user => { if (user) window.location.href = 'dashboard.html'; });
+
+      form.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const btn = form.querySelector('button');
+        btn.disabled = true;
+        btn.textContent = 'Signing in...';
+        try {
+          await adminLogin(form.email.value.trim(), form.password.value);
+          window.location.href = 'dashboard.html';
+        } catch (err) {
+          alertEl.style.display = 'block';
+          if (err.code === 'auth/invalid-credential') {
+            alertEl.textContent = 'Invalid email or password.';
+          } else if (err.code === 'auth/configuration-not-found') {
+            alertEl.innerHTML = '<strong>Enable Authentication in Firebase Console</strong><br>Authentication → Get started → Enable Email/Password.<br><a href="setup.html">Setup guide</a>';
+          } else {
+            alertEl.textContent = err.message;
+          }
+          btn.disabled = false;
+          btn.textContent = 'Sign In';
+        }
+      });
+    });
+  </script>
+</body>
+</html>

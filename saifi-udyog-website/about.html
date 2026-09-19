@@ -138,10 +138,10 @@
         <div>
           <h4>Contact</h4>
           <ul class="footer-contact">
-            <li>Phone: [PHONE NUMBER]</li>
-            <li>WhatsApp: [WHATSAPP NUMBER]</li>
-            <li>Email: [EMAIL]</li>
-            <li>Address: [ADDRESS]</li>
+            <li>Phone: <span data-contact="phone"></span></li>
+            <li>WhatsApp: <span data-contact="whatsapp"></span></li>
+            <li>Email: <span data-contact="email"></span></li>
+            <li>Address: <span data-contact="address"></span></li>
           </ul>
         </div>
       </div>
@@ -151,6 +151,11 @@
     </div>
   </footer>
 
+  <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore-compat.js"></script>
+  <script src="js/config.js"></script>
+  <script src="js/firebase-config.js"></script>
+  <script src="js/db.js"></script>
   <script src="js/main.js"></script>
 </body>
 </html>
