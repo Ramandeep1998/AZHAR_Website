@@ -1,0 +1,551 @@
+/* SAIFI UDYOG — Admin Panel Styles */
+
+:root {
+  --admin-sidebar: #1e1e1e;
+  --admin-bg: #f4f2ee;
+  --admin-card: #ffffff;
+  --admin-border: #e0dbd3;
+  --admin-primary: #2c2c2c;
+  --admin-accent: #8b6f47;
+  --admin-danger: #c0392b;
+  --admin-success: #27ae60;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body.admin-body {
+  font-family: 'Outfit', -apple-system, sans-serif;
+  background: var(--admin-bg);
+  color: var(--admin-primary);
+  min-height: 100vh;
+}
+
+/* ---- Login Page ---- */
+.admin-login-page {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem;
+  background: linear-gradient(135deg, #f7f3ed 0%, #e8dfd3 100%);
+}
+
+.login-card {
+  width: 100%;
+  max-width: 420px;
+  background: var(--admin-card);
+  padding: 2.5rem;
+  border-radius: 8px;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.08);
+}
+
+.login-card .logo {
+  font-family: 'Cormorant Garamond', Georgia, serif;
+  font-size: 1.6rem;
+  font-weight: 600;
+  text-align: center;
+  margin-bottom: 0.25rem;
+}
+
+.login-card .logo span { color: var(--admin-accent); }
+
+.login-subtitle {
+  text-align: center;
+  color: #666;
+  font-size: 0.9rem;
+  margin-bottom: 2rem;
+}
+
+.login-card h2 {
+  font-family: 'Cormorant Garamond', Georgia, serif;
+  font-size: 1.4rem;
+  margin-bottom: 1.5rem;
+  text-align: center;
+}
+
+.admin-alert {
+  padding: 0.85rem 1rem;
+  border-radius: 4px;
+  font-size: 0.88rem;
+  margin-bottom: 1rem;
+}
+
+.admin-alert.error { background: #fdecea; color: var(--admin-danger); border: 1px solid #f5c6cb; }
+.admin-alert.info { background: #e8f4fd; color: #2980b9; border: 1px solid #bee5eb; }
+.admin-alert.success { background: #d4edda; color: var(--admin-success); border: 1px solid #c3e6cb; }
+
+/* ---- Layout ---- */
+.admin-layout {
+  display: flex;
+  min-height: 100vh;
+}
+
+.admin-sidebar {
+  width: 260px;
+  background: var(--admin-sidebar);
+  color: #fff;
+  padding: 1.5rem 0;
+  flex-shrink: 0;
+  position: fixed;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  overflow-y: auto;
+}
+
+.admin-sidebar .brand {
+  padding: 0 1.5rem 1.5rem;
+  border-bottom: 1px solid rgba(255,255,255,0.1);
+  margin-bottom: 1rem;
+}
+
+.admin-sidebar .brand h1 {
+  font-family: 'Cormorant Garamond', Georgia, serif;
+  font-size: 1.3rem;
+  font-weight: 600;
+}
+
+.admin-sidebar .brand p {
+  font-size: 0.75rem;
+  color: rgba(255,255,255,0.5);
+  margin-top: 0.25rem;
+}
+
+.admin-nav a {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.85rem 1.5rem;
+  color: rgba(255,255,255,0.7);
+  text-decoration: none;
+  font-size: 0.9rem;
+  transition: all 0.2s;
+  border-left: 3px solid transparent;
+}
+
+.admin-nav a:hover,
+.admin-nav a.active {
+  background: rgba(255,255,255,0.06);
+  color: #fff;
+  border-left-color: var(--admin-accent);
+}
+
+.admin-main {
+  flex: 1;
+  margin-left: 260px;
+  padding: 2rem;
+}
+
+.admin-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 2rem;
+}
+
+.admin-header h2 {
+  font-family: 'Cormorant Garamond', Georgia, serif;
+  font-size: 1.8rem;
+}
+
+.admin-header-actions {
+  display: flex;
+  gap: 0.75rem;
+  align-items: center;
+}
+
+/* ---- Cards & Stats ---- */
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1.25rem;
+  margin-bottom: 2rem;
+}
+
+.stat-card {
+  background: var(--admin-card);
+  padding: 1.5rem;
+  border-radius: 8px;
+  border: 1px solid var(--admin-border);
+}
+
+.stat-card .stat-value {
+  font-size: 2rem;
+  font-weight: 600;
+  color: var(--admin-accent);
+}
+
+.stat-card .stat-label {
+  font-size: 0.85rem;
+  color: #888;
+  margin-top: 0.25rem;
+}
+
+/* ---- Forms ---- */
+.admin-form-group {
+  margin-bottom: 1.25rem;
+}
+
+.admin-form-group label {
+  display: block;
+  font-size: 0.85rem;
+  font-weight: 500;
+  margin-bottom: 0.4rem;
+}
+
+.admin-form-group input,
+.admin-form-group select,
+.admin-form-group textarea {
+  width: 100%;
+  padding: 0.75rem 1rem;
+  font-family: inherit;
+  font-size: 0.9rem;
+  border: 1px solid var(--admin-border);
+  border-radius: 4px;
+  background: #fff;
+}
+
+.admin-form-group input:focus,
+.admin-form-group select:focus,
+.admin-form-group textarea:focus {
+  outline: none;
+  border-color: var(--admin-accent);
+}
+
+.admin-form-group textarea { min-height: 100px; resize: vertical; }
+
+.admin-form-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+}
+
+/* ---- Buttons ---- */
+.admin-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.7rem 1.25rem;
+  font-family: inherit;
+  font-size: 0.85rem;
+  font-weight: 500;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.admin-btn-primary { background: var(--admin-primary); color: #fff; }
+.admin-btn-primary:hover { background: #444; }
+
+.admin-btn-accent { background: var(--admin-accent); color: #fff; }
+.admin-btn-accent:hover { background: #6b5435; }
+
+.admin-btn-outline { background: transparent; border: 1px solid var(--admin-border); color: var(--admin-primary); }
+.admin-btn-outline:hover { background: #f0ece6; }
+
+.admin-btn-danger { background: var(--admin-danger); color: #fff; }
+.admin-btn-danger:hover { background: #a93226; }
+
+.admin-btn-sm { padding: 0.45rem 0.85rem; font-size: 0.8rem; }
+
+.admin-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+/* ---- Product Table ---- */
+.admin-card {
+  background: var(--admin-card);
+  border: 1px solid var(--admin-border);
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.admin-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1.25rem 1.5rem;
+  border-bottom: 1px solid var(--admin-border);
+}
+
+.admin-card-header h3 {
+  font-size: 1rem;
+  font-weight: 600;
+}
+
+.product-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.product-table th,
+.product-table td {
+  padding: 0.85rem 1.25rem;
+  text-align: left;
+  border-bottom: 1px solid var(--admin-border);
+  font-size: 0.88rem;
+}
+
+.product-table th {
+  background: #faf8f5;
+  font-weight: 600;
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: #888;
+}
+
+.product-thumb {
+  width: 56px;
+  height: 42px;
+  object-fit: cover;
+  border-radius: 4px;
+  background: #eee;
+}
+
+.table-actions {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.badge {
+  display: inline-block;
+  padding: 0.2rem 0.6rem;
+  font-size: 0.75rem;
+  border-radius: 12px;
+  background: #e8dfd3;
+  color: var(--admin-accent);
+}
+
+.badge.inactive { background: #fdecea; color: var(--admin-danger); }
+
+/* ---- Modal ---- */
+.admin-modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.5);
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem;
+  opacity: 0;
+  visibility: hidden;
+  transition: all 0.25s;
+}
+
+.admin-modal-overlay.active {
+  opacity: 1;
+  visibility: visible;
+}
+
+.admin-modal {
+  background: #fff;
+  border-radius: 8px;
+  width: 100%;
+  max-width: 600px;
+  max-height: 90vh;
+  overflow-y: auto;
+  box-shadow: 0 16px 48px rgba(0,0,0,0.2);
+}
+
+.admin-modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1.25rem 1.5rem;
+  border-bottom: 1px solid var(--admin-border);
+}
+
+.admin-modal-header h3 {
+  font-family: 'Cormorant Garamond', Georgia, serif;
+  font-size: 1.3rem;
+}
+
+.admin-modal-close {
+  background: none;
+  border: none;
+  font-size: 1.5rem;
+  cursor: pointer;
+  color: #999;
+  line-height: 1;
+}
+
+.admin-modal-body { padding: 1.5rem; }
+
+.admin-modal-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.75rem;
+  padding: 1rem 1.5rem;
+  border-top: 1px solid var(--admin-border);
+}
+
+/* ---- Image Upload ---- */
+.image-upload-area {
+  border: 2px dashed var(--admin-border);
+  border-radius: 8px;
+  padding: 2rem;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.2s;
+  position: relative;
+  overflow: hidden;
+}
+
+.image-upload-area:hover { border-color: var(--admin-accent); background: #faf8f5; }
+
+.image-upload-area.has-image {
+  padding: 0;
+  border-style: solid;
+}
+
+.image-upload-area img {
+  width: 100%;
+  max-height: 200px;
+  object-fit: cover;
+  display: block;
+}
+
+.image-upload-area input[type="file"] {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  cursor: pointer;
+}
+
+.image-upload-hint {
+  color: #888;
+  font-size: 0.85rem;
+}
+
+.upload-progress {
+  margin-top: 0.5rem;
+  font-size: 0.8rem;
+  color: var(--admin-accent);
+}
+
+/* ---- Tabs ---- */
+.admin-panel { display: none; }
+.admin-panel.active { display: block; }
+
+/* ---- Loader ---- */
+.admin-loader {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 3rem;
+  color: #888;
+}
+
+.catalogue-loader {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 4rem;
+  color: var(--color-wood, #8b6f47);
+  font-size: 0.95rem;
+}
+
+.spinner {
+  width: 24px;
+  height: 24px;
+  border: 3px solid #e0dbd3;
+  border-top-color: var(--admin-accent);
+  border-radius: 50%;
+  animation: spin 0.7s linear infinite;
+  margin-right: 0.75rem;
+}
+
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* ---- Category cards in admin ---- */
+.category-admin-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1rem;
+}
+
+.category-admin-card {
+  padding: 1.25rem;
+  border: 1px solid var(--admin-border);
+  border-radius: 8px;
+  background: #faf8f5;
+}
+
+.category-admin-card h4 {
+  font-size: 1rem;
+  margin-bottom: 0.35rem;
+}
+
+.category-admin-card p {
+  font-size: 0.85rem;
+  color: #888;
+  margin-bottom: 0.75rem;
+}
+
+.empty-state {
+  text-align: center;
+  padding: 3rem;
+  color: #888;
+}
+
+/* ---- Enquiries ---- */
+.enquiry-card {
+  padding: 1.25rem 1.5rem;
+  border-bottom: 1px solid var(--admin-border);
+  transition: background 0.2s;
+}
+
+.enquiry-card.unread {
+  background: #faf8f5;
+  border-left: 3px solid var(--admin-accent);
+}
+
+.enquiry-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.35rem;
+}
+
+.enquiry-date {
+  font-size: 0.8rem;
+  color: #999;
+}
+
+.enquiry-meta {
+  font-size: 0.88rem;
+  color: #666;
+  margin-bottom: 0.5rem;
+}
+
+.enquiry-product {
+  font-size: 0.88rem;
+  color: var(--admin-accent);
+  margin-bottom: 0.5rem;
+}
+
+.enquiry-message {
+  font-size: 0.92rem;
+  color: #444;
+  margin-bottom: 1rem;
+  line-height: 1.6;
+}
+
+.enquiry-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+@media (max-width: 900px) {
+  .admin-sidebar { width: 100%; position: relative; }
+  .admin-main { margin-left: 0; }
+  .admin-layout { flex-direction: column; }
+  .stats-grid { grid-template-columns: 1fr; }
+  .admin-form-row { grid-template-columns: 1fr; }
+  .category-admin-grid { grid-template-columns: 1fr; }
+  .product-table { font-size: 0.8rem; }
+  .product-table th:nth-child(3),
+  .product-table td:nth-child(3) { display: none; }
+}

@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Firebase Setup Wizard | SAIFI UDYOG</title>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="admin.css">
+  <style>
+    .setup-page { max-width: 720px; margin: 0 auto; padding: 2rem; }
+    .setup-step { background: #fff; border: 1px solid var(--admin-border); border-radius: 8px; padding: 1.5rem; margin-bottom: 1rem; }
+    .setup-step h3 { margin-bottom: 0.5rem; display: flex; align-items: center; gap: 0.75rem; }
+    .status-dot { width: 12px; height: 12px; border-radius: 50%; background: #ccc; flex-shrink: 0; }
+    .status-dot.ok { background: var(--admin-success); }
+    .status-dot.fail { background: var(--admin-danger); }
+    .status-dot.pending { background: #f39c12; }
+    .setup-step p { font-size: 0.9rem; color: #666; margin-bottom: 1rem; }
+    .setup-actions { display: flex; gap: 0.75rem; flex-wrap: wrap; }
+    .setup-header { text-align: center; margin-bottom: 2rem; }
+    .setup-header h1 { font-size: 1.6rem; margin-bottom: 0.5rem; }
+    #overall-status { text-align: center; padding: 1rem; border-radius: 8px; margin-bottom: 1.5rem; font-weight: 500; }
+    #overall-status.ready { background: #d4edda; color: #155724; }
+    #overall-status.not-ready { background: #fff3cd; color: #856404; }
+  </style>
+</head>
+<body class="admin-body">
+  <div class="setup-page">
+    <div class="setup-header">
+      <h1>Firebase Setup Wizard</h1>
+      <p>Complete each step below. Click <strong>Check Status</strong> after each one.</p>
+    </div>
+
+    <div id="overall-status" class="not-ready">Checking setup...</div>
+
+    <div class="setup-step" id="step-config">
+      <h3><span class="status-dot" id="dot-config"></span> Step 1: Firebase Config</h3>
+      <p>Your <code>js/firebase-config.js</code> must have all Firebase keys filled in.</p>
+      <div class="setup-actions">
+        <button class="admin-btn admin-btn-outline admin-btn-sm" onclick="checkAll()">Check Status</button>
+      </div>
+    </div>
+
+    <div class="setup-step" id="step-auth">
+      <h3><span class="status-dot" id="dot-auth"></span> Step 2: Authentication (Login)</h3>
+      <p>Enable Email/Password sign-in and create an admin user.</p>
+      <div class="setup-actions">
+        <a href="https://console.firebase.google.com/project/saifiudhyog/authentication" target="_blank" class="admin-btn admin-btn-accent admin-btn-sm">Open Authentication</a>
+        <a href="https://console.firebase.google.com/project/saifiudhyog/authentication/users" target="_blank" class="admin-btn admin-btn-outline admin-btn-sm">Add Admin User</a>
+      </div>
+      <p style="margin-top:1rem;font-size:0.82rem;">In Sign-in method → enable <strong>Email/Password</strong>. In Users → Add user with email &amp; password.</p>
+    </div>
+
+    <div class="setup-step" id="step-firestore">
+      <h3><span class="status-dot" id="dot-firestore"></span> Step 3: Firestore Database</h3>
+      <p>Create the database and publish security rules.</p>
+      <div class="setup-actions">
+        <a href="https://console.firebase.google.com/project/saifiudhyog/firestore" target="_blank" class="admin-btn admin-btn-accent admin-btn-sm">Open Firestore</a>
+        <a href="https://console.firebase.google.com/project/saifiudhyog/firestore/rules" target="_blank" class="admin-btn admin-btn-outline admin-btn-sm">Open Rules</a>
+      </div>
+      <p style="margin-top:1rem;font-size:0.82rem;">Create database → test mode → region <strong>asia-south1</strong>. Copy rules from <code>firestore.rules</code> in project folder.</p>
+    </div>
+
+    <div class="setup-step" id="step-storage">
+      <h3><span class="status-dot" id="dot-storage"></span> Step 4: Storage (Image Uploads)</h3>
+      <p>Enable storage for product image uploads.</p>
+      <div class="setup-actions">
+        <a href="https://console.firebase.google.com/project/saifiudhyog/storage" target="_blank" class="admin-btn admin-btn-accent admin-btn-sm">Open Storage</a>
+        <a href="https://console.firebase.google.com/project/saifiudhyog/storage/rules" target="_blank" class="admin-btn admin-btn-outline admin-btn-sm">Open Rules</a>
+      </div>
+      <p style="margin-top:1rem;font-size:0.82rem;">Get started → test mode. Copy rules from <code>storage.rules</code> in project folder.</p>
+    </div>
+
+    <div class="setup-step" id="step-login">
+      <h3><span class="status-dot" id="dot-login"></span> Step 5: Test Login</h3>
+      <p>Once all above are green, go to admin login.</p>
+      <div class="setup-actions">
+        <a href="index.html" class="admin-btn admin-btn-primary admin-btn-sm">Go to Admin Login</a>
+        <a href="../products.html" class="admin-btn admin-btn-outline admin-btn-sm">View Website</a>
+      </div>
+    </div>
+
+    <div style="text-align:center; margin-top:1.5rem;">
+      <button class="admin-btn admin-btn-primary" onclick="checkAll()">↻ Re-check All Steps</button>
+    </div>
+  </div>
+
+  <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-storage-compat.js"></script>
+  <script src="../js/firebase-config.js"></script>
+  <script>
+    function setDot(id, status) {
+      const dot = document.getElementById(id);
+      dot.className = 'status-dot ' + status;
+    }
+
+    async function checkAll() {
+      const overall = document.getElementById('overall-status');
+      let ready = true;
+
+      // Config
+      if (FIREBASE_ENABLED) {
+        setDot('dot-config', 'ok');
+      } else {
+        setDot('dot-config', 'fail');
+        ready = false;
+      }
+
+      if (!FIREBASE_ENABLED) {
+        overall.className = 'not-ready';
+        overall.textContent = '❌ Fix firebase-config.js first';
+        return;
+      }
+
+      if (!firebase.apps.length) firebase.initializeApp(FIREBASE_CONFIG);
+
+      // Auth - try to detect if auth is configured by checking if we get configuration-not-found
+      try {
+        await firebase.auth().fetchSignInMethodsForEmail('test@test.com');
+        setDot('dot-auth', 'ok');
+      } catch (e) {
+        if (e.code === 'auth/configuration-not-found') {
+          setDot('dot-auth', 'fail');
+          ready = false;
+        } else {
+          setDot('dot-auth', 'ok'); // auth is enabled if we get other errors
+        }
+      }
+
+      // Firestore
+      try {
+        await firebase.firestore().collection('products').limit(1).get();
+        setDot('dot-firestore', 'ok');
+      } catch (e) {
+        setDot('dot-firestore', 'fail');
+        ready = false;
+      }
+
+      // Storage
+      try {
+        const ref = firebase.storage().ref('products/.setup-test');
+        await ref.getDownloadURL().catch(() => {});
+        setDot('dot-storage', 'ok');
+      } catch (e) {
+        if (e.code === 'storage/unauthorized' || e.code === 'storage/object-not-found') {
+          setDot('dot-storage', 'ok'); // storage exists
+        } else {
+          setDot('dot-storage', 'fail');
+          ready = false;
+        }
+      }
+
+      setDot('dot-login', ready ? 'ok' : 'pending');
+
+      if (ready) {
+        overall.className = 'ready';
+        overall.textContent = '✅ All set! Go to Admin Login and sign in.';
+      } else {
+        overall.className = 'not-ready';
+        overall.textContent = '⚠️ Complete the red steps above, then click Re-check.';
+      }
+    }
+
+    document.addEventListener('DOMContentLoaded', checkAll);
+  </script>
+</body>
+</html>

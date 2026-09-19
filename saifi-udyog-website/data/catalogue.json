@@ -1,0 +1,370 @@
+{
+  "categories": [
+    {
+      "id": "sofa-seating",
+      "title": "Sofa & Seating",
+      "description": "Comfortable and stylish seating solutions for living rooms and lounges.",
+      "order": 0
+    },
+    {
+      "id": "office-furniture",
+      "title": "Office Furniture",
+      "description": "Functional and ergonomic furniture designed for productive workspaces.",
+      "order": 0
+    },
+    {
+      "id": "home-furniture",
+      "title": "Home Furniture",
+      "description": "Beautiful furniture pieces to make every room in your home feel complete.",
+      "order": 0
+    },
+    {
+      "id": "other-furniture",
+      "title": "Other Furniture",
+      "description": "Additional furniture solutions including storage, shelving and custom pieces.",
+      "order": 0
+    }
+  ],
+  "products": [
+    {
+      "id": "sofa-seating-Sofa Sets-0",
+      "name": "Classic 3-Seater Sofa",
+      "description": "A timeless three-seater sofa with plush cushioning and elegant upholstery, perfect for modern living rooms.",
+      "imageUrl": "https://images.unsplash.com/photo-1555041469-a586c61ea9bc?w=600&q=80",
+      "categoryId": "sofa-seating",
+      "subcategory": "Sofa Sets",
+      "order": 0,
+      "active": true
+    },
+    {
+      "id": "sofa-seating-Sofa Sets-1",
+      "name": "L-Shaped Sectional Sofa",
+      "description": "Spacious L-shaped design that maximises seating while adding a contemporary touch to your space.",
+      "imageUrl": "https://images.unsplash.com/photo-1493663284031-b7e00a55f922?w=600&q=80",
+      "categoryId": "sofa-seating",
+      "subcategory": "Sofa Sets",
+      "order": 1,
+      "active": true
+    },
+    {
+      "id": "sofa-seating-Sofa Sets-2",
+      "name": "Compact 2-Seater Sofa",
+      "description": "Ideal for smaller spaces, this two-seater offers comfort without compromising on style.",
+      "imageUrl": "https://images.unsplash.com/photo-1540574163026-d643e9bcaad3?w=600&q=80",
+      "categoryId": "sofa-seating",
+      "subcategory": "Sofa Sets",
+      "order": 2,
+      "active": true
+    },
+    {
+      "id": "sofa-seating-Sofa Chairs-0",
+      "name": "Accent Armchair",
+      "description": "A statement armchair with refined curves and soft fabric, designed for reading corners and lounges.",
+      "imageUrl": "https://images.unsplash.com/photo-1567538096630-e0c55bd6374c?w=600&q=80",
+      "categoryId": "sofa-seating",
+      "subcategory": "Sofa Chairs",
+      "order": 0,
+      "active": true
+    },
+    {
+      "id": "sofa-seating-Sofa Chairs-1",
+      "name": "Recliner Sofa Chair",
+      "description": "Relax in comfort with this reclining sofa chair featuring premium padding and smooth mechanism.",
+      "imageUrl": "https://images.unsplash.com/photo-1586023492125-27b2c045efd7?w=600&q=80",
+      "categoryId": "sofa-seating",
+      "subcategory": "Sofa Chairs",
+      "order": 1,
+      "active": true
+    },
+    {
+      "id": "sofa-seating-Lounge Chairs-0",
+      "name": "Modern Lounge Chair",
+      "description": "Sleek lounge chair with minimalist design, perfect for waiting areas and modern interiors.",
+      "imageUrl": "https://images.unsplash.com/photo-1592078615290-033ee584e267?w=600&q=80",
+      "categoryId": "sofa-seating",
+      "subcategory": "Lounge Chairs",
+      "order": 0,
+      "active": true
+    },
+    {
+      "id": "sofa-seating-Lounge Chairs-1",
+      "name": "Wingback Lounge Chair",
+      "description": "Classic wingback silhouette with deep seating for ultimate relaxation in any room.",
+      "imageUrl": "https://images.unsplash.com/photo-1631049307264-da0ec9d70304?w=600&q=80",
+      "categoryId": "sofa-seating",
+      "subcategory": "Lounge Chairs",
+      "order": 1,
+      "active": true
+    },
+    {
+      "id": "sofa-seating-Other Seating-0",
+      "name": "Bench Seating",
+      "description": "Versatile bench seating suitable for entryways, dining areas and commercial spaces.",
+      "imageUrl": "https://images.unsplash.com/photo-1506439773649-6e0eb8cfb237?w=600&q=80",
+      "categoryId": "sofa-seating",
+      "subcategory": "Other Seating",
+      "order": 0,
+      "active": true
+    },
+    {
+      "id": "sofa-seating-Other Seating-1",
+      "name": "Ottoman Pouf",
+      "description": "Soft ottoman pouf that doubles as extra seating or a footrest for your sofa set.",
+      "imageUrl": "https://images.unsplash.com/photo-1503602642458-232111445657?w=600&q=80",
+      "categoryId": "sofa-seating",
+      "subcategory": "Other Seating",
+      "order": 1,
+      "active": true
+    },
+    {
+      "id": "office-furniture-Office Chairs-0",
+      "name": "Executive Office Chair",
+      "description": "High-back executive chair with lumbar support, adjustable height and premium upholstery.",
+      "imageUrl": "https://images.unsplash.com/photo-1580480055273-228ff5388ef8?w=600&q=80",
+      "categoryId": "office-furniture",
+      "subcategory": "Office Chairs",
+      "order": 0,
+      "active": true
+    },
+    {
+      "id": "office-furniture-Office Chairs-1",
+      "name": "Ergonomic Task Chair",
+      "description": "Designed for long hours of work with breathable mesh back and adjustable armrests.",
+      "imageUrl": "https://images.unsplash.com/photo-1592078615290-033ee584e267?w=600&q=80",
+      "categoryId": "office-furniture",
+      "subcategory": "Office Chairs",
+      "order": 1,
+      "active": true
+    },
+    {
+      "id": "office-furniture-Office Chairs-2",
+      "name": "Visitor Chair",
+      "description": "Comfortable visitor seating for reception areas, meeting rooms and waiting lounges.",
+      "imageUrl": "https://images.unsplash.com/photo-1611269146515-503b3885b1fa?w=600&q=80",
+      "categoryId": "office-furniture",
+      "subcategory": "Office Chairs",
+      "order": 2,
+      "active": true
+    },
+    {
+      "id": "office-furniture-Office Desks-0",
+      "name": "Executive Desk",
+      "description": "Spacious executive desk with built-in storage drawers and a clean, professional finish.",
+      "imageUrl": "https://images.unsplash.com/photo-1518455027359-f3f8164ba6bd?w=600&q=80",
+      "categoryId": "office-furniture",
+      "subcategory": "Office Desks",
+      "order": 0,
+      "active": true
+    },
+    {
+      "id": "office-furniture-Office Desks-1",
+      "name": "Computer Desk",
+      "description": "Compact computer desk with cable management and ample surface area for monitors and accessories.",
+      "imageUrl": "https://images.unsplash.com/photo-1595526114035-0d45ed16cfbf?w=600&q=80",
+      "categoryId": "office-furniture",
+      "subcategory": "Office Desks",
+      "order": 1,
+      "active": true
+    },
+    {
+      "id": "office-furniture-Workstations-0",
+      "name": "Linear Workstation",
+      "description": "Modular linear workstation system for open-plan offices with privacy panels and storage.",
+      "imageUrl": "https://images.unsplash.com/photo-1497366216548-37526070297c?w=600&q=80",
+      "categoryId": "office-furniture",
+      "subcategory": "Workstations",
+      "order": 0,
+      "active": true
+    },
+    {
+      "id": "office-furniture-Workstations-1",
+      "name": "L-Shaped Workstation",
+      "description": "Corner workstation layout offering maximum desk space for multitasking professionals.",
+      "imageUrl": "https://images.unsplash.com/photo-1497366811353-6870744d04b2?w=600&q=80",
+      "categoryId": "office-furniture",
+      "subcategory": "Workstations",
+      "order": 1,
+      "active": true
+    },
+    {
+      "id": "office-furniture-Conference Tables-0",
+      "name": "Boardroom Conference Table",
+      "description": "Large conference table with premium wood finish, ideal for boardrooms and meeting halls.",
+      "imageUrl": "https://images.unsplash.com/photo-1431540015161-0bf868a2d407?w=600&q=80",
+      "categoryId": "office-furniture",
+      "subcategory": "Conference Tables",
+      "order": 0,
+      "active": true
+    },
+    {
+      "id": "office-furniture-Conference Tables-1",
+      "name": "Modular Meeting Table",
+      "description": "Flexible modular meeting table that can be configured for different group sizes.",
+      "imageUrl": "https://images.unsplash.com/photo-1556761175-5973dc0f32e7?w=600&q=80",
+      "categoryId": "office-furniture",
+      "subcategory": "Conference Tables",
+      "order": 1,
+      "active": true
+    },
+    {
+      "id": "home-furniture-Beds-0",
+      "name": "King Size Bed",
+      "description": "Elegant king size bed frame with a sturdy headboard and premium wood construction.",
+      "imageUrl": "https://images.unsplash.com/photo-1505693416388-ac5ce068fe85?w=600&q=80",
+      "categoryId": "home-furniture",
+      "subcategory": "Beds",
+      "order": 0,
+      "active": true
+    },
+    {
+      "id": "home-furniture-Beds-1",
+      "name": "Queen Size Bed",
+      "description": "Stylish queen size bed with clean lines and a warm finish for modern bedrooms.",
+      "imageUrl": "https://images.unsplash.com/photo-1522771739844-6ce9f6e380c0?w=600&q=80",
+      "categoryId": "home-furniture",
+      "subcategory": "Beds",
+      "order": 1,
+      "active": true
+    },
+    {
+      "id": "home-furniture-Beds-2",
+      "name": "Single Bed",
+      "description": "Compact single bed perfect for guest rooms, children's rooms and studio apartments.",
+      "imageUrl": "https://images.unsplash.com/photo-1631049307264-da0ec9d70304?w=600&q=80",
+      "categoryId": "home-furniture",
+      "subcategory": "Beds",
+      "order": 2,
+      "active": true
+    },
+    {
+      "id": "home-furniture-Tables-0",
+      "name": "Dining Table",
+      "description": "Solid wood dining table with seating for six, crafted for family meals and gatherings.",
+      "imageUrl": "https://images.unsplash.com/photo-1532372320572-cda25653a26d?w=600&q=80",
+      "categoryId": "home-furniture",
+      "subcategory": "Tables",
+      "order": 0,
+      "active": true
+    },
+    {
+      "id": "home-furniture-Tables-1",
+      "name": "Coffee Table",
+      "description": "Low-profile coffee table with a smooth surface, complementing any living room setup.",
+      "imageUrl": "https://images.unsplash.com/photo-1611269146515-503b3885b1fa?w=600&q=80",
+      "categoryId": "home-furniture",
+      "subcategory": "Tables",
+      "order": 1,
+      "active": true
+    },
+    {
+      "id": "home-furniture-Tables-2",
+      "name": "Side Table",
+      "description": "Compact side table ideal for placing beside sofas, beds or accent chairs.",
+      "imageUrl": "https://images.unsplash.com/photo-1594620302200-9a762244a156?w=600&q=80",
+      "categoryId": "home-furniture",
+      "subcategory": "Tables",
+      "order": 2,
+      "active": true
+    },
+    {
+      "id": "home-furniture-Chairs-0",
+      "name": "Dining Chair",
+      "description": "Comfortable dining chair with cushioned seat and durable wooden frame.",
+      "imageUrl": "https://images.unsplash.com/photo-1503602642458-232111445657?w=600&q=80",
+      "categoryId": "home-furniture",
+      "subcategory": "Chairs",
+      "order": 0,
+      "active": true
+    },
+    {
+      "id": "home-furniture-Chairs-1",
+      "name": "Accent Chair",
+      "description": "Stylish accent chair that adds character and extra seating to any room.",
+      "imageUrl": "https://images.unsplash.com/photo-1567538096630-e0c55bd6374c?w=600&q=80",
+      "categoryId": "home-furniture",
+      "subcategory": "Chairs",
+      "order": 1,
+      "active": true
+    },
+    {
+      "id": "home-furniture-Storage Furniture-0",
+      "name": "Wardrobe",
+      "description": "Spacious wardrobe with multiple compartments for organised clothing storage.",
+      "imageUrl": "https://images.unsplash.com/photo-1595428774223-ef5262417080?w=600&q=80",
+      "categoryId": "home-furniture",
+      "subcategory": "Storage Furniture",
+      "order": 0,
+      "active": true
+    },
+    {
+      "id": "home-furniture-Storage Furniture-1",
+      "name": "Chest of Drawers",
+      "description": "Multi-drawer chest with smooth handles and a refined wood finish for bedrooms.",
+      "imageUrl": "https://images.unsplash.com/photo-1598300042247-d088f8ab3a91?w=600&q=80",
+      "categoryId": "home-furniture",
+      "subcategory": "Storage Furniture",
+      "order": 1,
+      "active": true
+    },
+    {
+      "id": "other-furniture-Cabinets-0",
+      "name": "Display Cabinet",
+      "description": "Glass-front display cabinet for showcasing collectibles, books and decorative items.",
+      "imageUrl": "https://images.unsplash.com/photo-1595428774223-ef5262417080?w=600&q=80",
+      "categoryId": "other-furniture",
+      "subcategory": "Cabinets",
+      "order": 0,
+      "active": true
+    },
+    {
+      "id": "other-furniture-Cabinets-1",
+      "name": "Storage Cabinet",
+      "description": "Multi-purpose storage cabinet with adjustable shelves for home or office use.",
+      "imageUrl": "https://images.unsplash.com/photo-1616486338812-3dadae4b4ace?w=600&q=80",
+      "categoryId": "other-furniture",
+      "subcategory": "Cabinets",
+      "order": 1,
+      "active": true
+    },
+    {
+      "id": "other-furniture-Shelves-0",
+      "name": "Wall Shelf Unit",
+      "description": "Floating wall shelf unit for displaying books, plants and decorative accents.",
+      "imageUrl": "https://images.unsplash.com/photo-1594620302200-9a762244a156?w=600&q=80",
+      "categoryId": "other-furniture",
+      "subcategory": "Shelves",
+      "order": 0,
+      "active": true
+    },
+    {
+      "id": "other-furniture-Shelves-1",
+      "name": "Bookcase",
+      "description": "Tall bookcase with multiple tiers, perfect for libraries, studies and living rooms.",
+      "imageUrl": "https://images.unsplash.com/photo-1586023492125-27b2c045efd7?w=600&q=80",
+      "categoryId": "other-furniture",
+      "subcategory": "Shelves",
+      "order": 1,
+      "active": true
+    },
+    {
+      "id": "other-furniture-Custom Furniture-0",
+      "name": "Custom Furniture",
+      "description": "Need something unique? We create custom furniture tailored to your space, style and requirements.",
+      "imageUrl": "https://images.unsplash.com/photo-1617806118233-18e1de247200?w=600&q=80",
+      "categoryId": "other-furniture",
+      "subcategory": "Custom Furniture",
+      "order": 0,
+      "active": true
+    },
+    {
+      "id": "other-furniture-Custom Furniture-1",
+      "name": "Bespoke Interior Solutions",
+      "description": "Complete interior furniture solutions designed and manufactured to fit your specific needs.",
+      "imageUrl": "https://images.unsplash.com/photo-1618221197170-2f1629a2d1ee?w=600&q=80",
+      "categoryId": "other-furniture",
+      "subcategory": "Custom Furniture",
+      "order": 1,
+      "active": true
+    }
+  ]
+}
