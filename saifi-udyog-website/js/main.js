@@ -1,17 +1,124 @@
-/* SAIFI UDYOG — Main JavaScript */
+/* SAIFI UDYOG — Main JavaScript (crash-safe boot) */
 
 document.addEventListener('DOMContentLoaded', async () => {
-  await initSiteConfig();
-  initHeader();
-  initMobileNav();
-  initScrollAnimations();
-  initCatalogueNav();
-  initContactForm();
-  initWhatsAppFloat();
-  initBackToTop();
-  initProductLightbox();
-  prefillEnquiryFromUrl();
+  if (window.SAIFI_SAFE) SAIFI_SAFE.bindGlobalErrorHandlers();
+
+  // Prefill must not wait on Firebase — otherwise Enquire Now arrives with an empty form
+  try { prefillEnquiryFromUrl(); } catch (e) { console.warn('prefillEnquiryFromUrl', e); }
+
+  try { await initSiteConfig(); } catch (e) { console.warn('initSiteConfig', e); }
+  try { initHeader(); } catch (e) { console.warn('initHeader', e); }
+  try { initMobileNav(); } catch (e) { console.warn('initMobileNav', e); }
+  try { initScrollAnimations(); } catch (e) { console.warn('initScrollAnimations', e); }
+  try { initCatalogueNav(); } catch (e) { console.warn('initCatalogueNav', e); }
+  try { initContactForm(); } catch (e) { console.warn('initContactForm', e); }
+  try { initWhatsAppFloat(); } catch (e) { console.warn('initWhatsAppFloat', e); }
+  try { initBackToTop(); } catch (e) { console.warn('initBackToTop', e); }
+  try { initProductLightbox(); } catch (e) { console.warn('initProductLightbox', e); }
+  try { await initHomeCatalogue(); } catch (e) { console.warn('initHomeCatalogue', e); }
 });
+
+/* ---- Home: live products only (no sample / Unsplash filler) ---- */
+function escapeHomeHtml(str) {
+  if (window.SAIFI_SAFE) return SAIFI_SAFE.escapeHtml(str);
+  if (!str) return '';
+  const d = document.createElement('div');
+  d.textContent = str;
+  return d.innerHTML;
+}
+
+async function initHomeCatalogue() {
+  const grid = document.getElementById('home-category-grid');
+  if (!grid) return;
+
+  const loading = document.getElementById('home-catalogue-loading');
+  const intro = document.getElementById('home-products-intro');
+  const heroImg = document.getElementById('home-hero-image');
+  const heroBg = document.getElementById('home-hero-bg');
+
+  try {
+    if (typeof initFirebase === 'function') initFirebase();
+    const data = (typeof getCatalogueData === 'function')
+      ? await getCatalogueData()
+      : [];
+
+    const categories = Array.isArray(data) ? data : [];
+    const firstImage = categories
+      .flatMap(c => (c.subcategories || []).flatMap(s => s.products || []))
+      .map(p => p.image)
+      .find(src => src && !String(src).includes('unsplash.com'));
+
+    if (firstImage && heroImg && heroBg) {
+      const safe = window.SAIFI_SAFE ? SAIFI_SAFE.safeImageUrl(firstImage) : firstImage;
+      heroImg.src = safe;
+      heroImg.alt = 'SAIFI UDYOG furniture';
+      heroImg.hidden = false;
+      heroImg.removeAttribute('hidden');
+      heroBg.classList.add('has-photo');
+    }
+
+    if (!categories.length) {
+      if (window.__SAIFI_CATALOGUE_ERROR) {
+        if (intro) intro.textContent = 'Catalogue could not load from the server.';
+        grid.innerHTML = `
+          <div class="home-empty-catalogue fade-in visible">
+            <h3>Catalogue could not load</h3>
+            <p>${escapeHomeHtml(window.__SAIFI_CATALOGUE_ERROR)}</p>
+            <a href="products.html" class="btn btn-wood">See details</a>
+          </div>`;
+        return;
+      }
+      if (intro) {
+        intro.textContent = 'New pieces are being prepared. Contact us for current availability.';
+      }
+      grid.innerHTML = `
+        <div class="home-empty-catalogue fade-in visible">
+          <h3>Catalogue updating</h3>
+          <p>No products are listed yet. Reach out and we’ll share the latest range.</p>
+          <a href="contact.html" class="btn btn-wood">Contact Us</a>
+        </div>`;
+      return;
+    }
+
+    if (intro) {
+      intro.textContent = 'Explore furniture crafted for comfort, style and durability.';
+    }
+
+    grid.innerHTML = categories.map(cat => {
+      const first = (cat.subcategories || [])
+        .flatMap(s => s.products || [])
+        .find(p => p && p.image);
+      const img = first && first.image
+        ? (window.SAIFI_SAFE ? SAIFI_SAFE.safeImageUrl(first.image) : first.image)
+        : '';
+      const count = (cat.subcategories || []).reduce(
+        (n, s) => n + ((s.products && s.products.length) || 0), 0
+      );
+      const imgHtml = img
+        ? `<img src="${escapeHomeHtml(img)}" alt="${escapeHomeHtml(cat.title || '')}" loading="lazy">`
+        : `<div class="category-card-placeholder"></div>`;
+
+      return `<a href="products.html#${escapeHomeHtml(cat.id || '')}" class="category-card fade-in">
+        ${imgHtml}
+        <div class="category-card-overlay">
+          <h3>${escapeHomeHtml(cat.title || '')}</h3>
+          <span class="category-card-count">${count} product${count === 1 ? '' : 's'}</span>
+        </div>
+      </a>`;
+    }).join('');
+
+    if (typeof initScrollAnimations === 'function') initScrollAnimations();
+  } catch (err) {
+    console.error(err);
+    grid.innerHTML = `
+      <div class="home-empty-catalogue fade-in visible">
+        <h3>Catalogue temporarily unavailable</h3>
+        <p><a href="contact.html">Contact us</a> for product details.</p>
+      </div>`;
+  } finally {
+    if (loading) loading.remove();
+  }
+}
 
 /* ---- Site Config (contact info from Firebase cloud) ---- */
 async function initSiteConfig() {
@@ -153,7 +260,9 @@ function initContactForm() {
     const mobile = form.querySelector('[name="mobile"]').value.trim();
     const email = form.querySelector('[name="email"]').value.trim();
     const message = form.querySelector('[name="message"]').value.trim();
-    const product = new URLSearchParams(window.location.search).get('product') || '';
+    const productField = form.querySelector('[name="product"]');
+    const productFromUrl = new URLSearchParams(window.location.search).get('product') || '';
+    const product = ((productField && productField.value) || productFromUrl || '').trim();
 
     if (!name || !mobile || !message) {
       showFormError('Please fill in all required fields.');
@@ -172,12 +281,11 @@ function initContactForm() {
     const enquiry = { name, mobile, email, message, product };
 
     try {
-      // 1. Save to Firebase (owner sees in Admin → Enquiries)
+      let savedId = null;
       if (typeof saveEnquiry === 'function') {
-        await saveEnquiry(enquiry);
+        savedId = await saveEnquiry(enquiry);
       }
 
-      // 2. Send email notification via Web3Forms (if configured in admin settings)
       if (cfg.web3formsKey) {
         const fd = new FormData();
         fd.append('access_key', cfg.web3formsKey);
@@ -195,22 +303,28 @@ function initContactForm() {
         if (!res.ok) throw new Error('Email send failed');
       }
 
-      // 3. Open WhatsApp to owner (if configured)
       if (cfg.whatsappNumber) {
         const text = encodeURIComponent(formatEnquiryText(enquiry, true));
         window.open(`https://wa.me/${cfg.whatsappNumber}?text=${text}`, '_blank');
-        showFormSuccess('Thank you! Your enquiry was sent. WhatsApp has opened — tap Send to notify us instantly.');
-      } else {
+        const saveNote = savedId
+          ? 'Your enquiry was saved.'
+          : 'Please tap Send on WhatsApp (cloud save may need Firestore enquiry rules).';
+        showFormSuccess(`Thank you! ${saveNote}`);
+      } else if (savedId) {
         showFormSuccess('Thank you! Your enquiry has been received. We will contact you shortly.');
+      } else {
+        throw new Error('Could not save enquiry');
       }
 
       form.reset();
+      const group = document.getElementById('enquiry-product-group');
+      if (group) group.hidden = true;
     } catch (err) {
       console.error(err);
       if (cfg.whatsappNumber) {
         const text = encodeURIComponent(formatEnquiryText(enquiry, true));
         window.open(`https://wa.me/${cfg.whatsappNumber}?text=${text}`, '_blank');
-        showFormSuccess('Enquiry saved. WhatsApp opened — please tap Send to reach us.');
+        showFormSuccess('WhatsApp opened — please tap Send to reach us.');
       } else {
         showFormError('Could not send enquiry. Please call or email us directly.');
       }
@@ -236,7 +350,9 @@ function initContactForm() {
       const mobile = document.getElementById('mobile')?.value.trim() || '';
       const email = document.getElementById('email')?.value.trim() || '';
       const message = document.getElementById('message')?.value.trim() || 'Hello, I would like to enquire about your furniture.';
-      const product = new URLSearchParams(window.location.search).get('product') || '';
+      const product = (document.getElementById('enquiry-product')?.value
+        || new URLSearchParams(window.location.search).get('product')
+        || '').trim();
       const text = encodeURIComponent(formatEnquiryText({ name, mobile, email, message, product }, true));
       window.open(`https://wa.me/${cfg.whatsappNumber}?text=${text}`, '_blank');
     });
@@ -277,13 +393,48 @@ function showFormError(msg) {
 
 function prefillEnquiryFromUrl() {
   const params = new URLSearchParams(window.location.search);
-  const product = params.get('product');
+  let product = params.get('product');
+
+  // Local static servers sometimes strip ?query on .html → clean URL redirects
+  if (!product) {
+    try {
+      product = sessionStorage.getItem('saifi_enquiry_product') || '';
+    } catch (e) { /* ignore */ }
+  }
+
   if (!product) return;
 
-  const messageField = document.getElementById('message');
-  if (messageField) {
-    messageField.value = `I would like to enquire about: ${product.replace(/\+/g, ' ')}`;
+  try {
+    product = decodeURIComponent(product).replace(/\+/g, ' ').trim();
+  } catch (e) {
+    product = String(product).replace(/\+/g, ' ').trim();
   }
+  if (!product) return;
+
+  try {
+    sessionStorage.removeItem('saifi_enquiry_product');
+  } catch (e) { /* ignore */ }
+
+  const productField = document.getElementById('enquiry-product');
+  const productGroup = document.getElementById('enquiry-product-group');
+  if (productField) {
+    productField.value = product;
+    if (productGroup) productGroup.hidden = false;
+  }
+
+  const messageField = document.getElementById('message');
+  if (messageField && !messageField.value.trim()) {
+    messageField.value = `I would like to enquire about: ${product}`;
+  }
+}
+
+/** Keep product name across navigation when hosts drop query strings */
+function rememberEnquiryProduct(name) {
+  const value = String(name || '').trim();
+  if (!value) return;
+  try {
+    sessionStorage.setItem('saifi_enquiry_product', value);
+  } catch (e) { /* ignore */ }
 }
 
 /* ---- Floating WhatsApp Button ---- */
@@ -352,9 +503,17 @@ function openLightbox(src, alt) {
     });
   }
 
-  overlay.querySelector('.lightbox-image').src = src.replace('w=600', 'w=1200');
-  overlay.querySelector('.lightbox-image').alt = alt;
-  overlay.querySelector('.lightbox-caption').textContent = alt;
+  const safeSrc = window.SAIFI_SAFE
+    ? SAIFI_SAFE.safeImageUrl(String(src || '').replace('w=600', 'w=1200'))
+    : src;
+  const img = overlay.querySelector('.lightbox-image');
+  img.onerror = () => {
+    img.onerror = null;
+    img.src = window.SAIFI_SAFE ? SAIFI_SAFE.PLACEHOLDER_IMAGE : '';
+  };
+  img.src = safeSrc;
+  img.alt = alt || '';
+  overlay.querySelector('.lightbox-caption').textContent = alt || '';
   overlay.classList.add('active');
   document.body.style.overflow = 'hidden';
 }

@@ -28,7 +28,14 @@
 
     <main class="admin-main">
       <section id="panel-overview" class="admin-panel active">
-        <div class="admin-header"><h2>Dashboard</h2></div>
+        <div class="admin-header">
+          <h2>Dashboard</h2>
+          <span id="firebase-status" class="firebase-status">Checking Firebase...</span>
+        </div>
+        <p class="admin-tip" style="margin:0.75rem 0 0;font-size:0.9rem;color:#666;">
+          Products appear on the live site only if Status is <strong>Active</strong> and Firestore Rules allow public <strong>read</strong>.
+          Open <a href="../products.html" target="_blank" rel="noopener">Products page</a> after publishing rules.
+        </p>
         <div class="stats-grid">
           <div class="stat-card"><div class="stat-value" id="stat-products">—</div><div class="stat-label">Products</div></div>
           <div class="stat-card"><div class="stat-value" id="stat-categories">—</div><div class="stat-label">Categories</div></div>
@@ -38,7 +45,7 @@
           <div class="admin-card-header"><h3>Quick Actions</h3></div>
           <div style="padding:1.5rem;display:flex;gap:1rem;flex-wrap:wrap;">
             <button class="admin-btn admin-btn-accent" id="quick-add-product">+ Add Product</button>
-            <button class="admin-btn admin-btn-outline" id="seed-btn">Import Sample Products</button>
+            <button class="admin-btn admin-btn-outline" id="seed-btn" title="Optional: loads demo items for testing only">Load Demo Data (optional)</button>
             <a href="../products.html" target="_blank" class="admin-btn admin-btn-outline">View Live Catalogue</a>
           </div>
         </div>
@@ -64,7 +71,7 @@
             <tbody id="products-tbody"></tbody>
           </table>
           <div id="products-empty" class="empty-state" style="display:none;">
-            <p>No products yet. Click "Import Sample Products" on Overview, or add your first product.</p>
+            <p>No products yet. Click <strong>+ Add Product</strong> to publish to the live website.</p>
           </div>
         </div>
       </section>
@@ -132,13 +139,21 @@
           <input type="hidden" id="product-id">
           <input type="hidden" id="product-image-url">
           <div class="admin-form-group">
-            <label>Product Image * (uploaded to cloud)</label>
+            <label>Product photo *</label>
             <div class="image-upload-area" id="image-upload-area">
-              <input type="file" id="product-image-file" accept="image/*">
-              <div class="image-upload-hint" id="upload-hint">Click to upload image</div>
+              <input type="file" id="product-image-file" accept="image/jpeg,image/png,image/webp,image/gif,.jpg,.jpeg,.png,.webp">
+              <div class="image-upload-hint" id="upload-hint">
+                <strong>Click here</strong> to choose a photo from your computer<br>
+                <span style="font-size:0.75rem;">JPG / PNG recommended</span>
+              </div>
               <img id="image-preview" style="display:none;" alt="Preview">
             </div>
+            <button type="button" class="admin-btn admin-btn-outline admin-btn-sm" id="pick-image-btn" style="margin-top:0.5rem;">Choose Photo</button>
             <p class="upload-progress" id="upload-progress" style="display:none;"></p>
+          </div>
+          <div class="admin-form-group">
+            <label for="product-image-url-input">Or paste Image URL</label>
+            <input type="text" id="product-image-url-input" placeholder="https://your-image-host.com/photo.jpg" inputmode="url">
           </div>
           <div class="admin-form-group"><label for="product-name">Product Name *</label><input type="text" id="product-name" required></div>
           <div class="admin-form-group"><label for="product-description">Description *</label><textarea id="product-description" required></textarea></div>
@@ -187,6 +202,7 @@
   <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-storage-compat.js"></script>
+  <script src="../js/safe.js"></script>
   <script src="../js/firebase-config.js"></script>
   <script src="../js/products-data.js"></script>
   <script src="../js/db.js"></script>

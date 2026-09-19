@@ -12,7 +12,7 @@ const SITE_CONFIG = {
   whatsapp: '+91 97193 04062',
   whatsappNumber: '919719304062',
   email: 'info@saifiudyog.com',
-  address: 'Your City, State, India',
+  address: '',
 
   mapsEmbedUrl: '',
   formEndpoint: '',

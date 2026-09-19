@@ -34,8 +34,8 @@
 
   <!-- Hero -->
   <section class="hero">
-    <div class="hero-bg">
-      <img src="https://images.unsplash.com/photo-1618221197170-2f1629a2d1ee?w=1920&q=80" alt="Elegant living room furniture" fetchpriority="high">
+    <div class="hero-bg hero-bg--brand" id="home-hero-bg" aria-hidden="true">
+      <img id="home-hero-image" src="" alt="" hidden>
       <div class="hero-overlay"></div>
     </div>
     <div class="hero-content">
@@ -49,43 +49,16 @@
     </div>
   </section>
 
-  <!-- Our Products -->
-  <section class="section">
+  <!-- Our Products (filled from live admin data only) -->
+  <section class="section" id="home-products-section">
     <div class="container">
       <div class="section-header fade-in">
         <p class="section-label">Catalogue</p>
         <h2>Our Products</h2>
-        <p>Explore our wide range of furniture crafted for comfort, style and durability.</p>
+        <p id="home-products-intro">Explore furniture crafted for comfort, style and durability.</p>
       </div>
-      <div class="category-grid">
-        <a href="products.html#sofa-seating" class="category-card fade-in">
-          <img src="https://images.unsplash.com/photo-1555041469-a586c61ea9bc?w=800&q=80" alt="Sofa & Sofa Chairs">
-          <div class="category-card-overlay"><h3>Sofa & Sofa Chairs</h3></div>
-        </a>
-        <a href="products.html#office-furniture" class="category-card fade-in">
-          <img src="https://images.unsplash.com/photo-1580480055273-228ff5388ef8?w=600&q=80" alt="Office Chairs">
-          <div class="category-card-overlay"><h3>Office Chairs</h3></div>
-        </a>
-        <a href="products.html#office-furniture" class="category-card fade-in">
-          <img src="https://images.unsplash.com/photo-1518455027359-f3f8164ba6bd?w=600&q=80" alt="Office Desks">
-          <div class="category-card-overlay"><h3>Office Desks</h3></div>
-        </a>
-        <a href="products.html#home-furniture" class="category-card fade-in">
-          <img src="https://images.unsplash.com/photo-1505693416388-ac5ce068fe85?w=600&q=80" alt="Beds">
-          <div class="category-card-overlay"><h3>Beds</h3></div>
-        </a>
-        <a href="products.html#home-furniture" class="category-card fade-in">
-          <img src="https://images.unsplash.com/photo-1532372320572-cda25653a26d?w=600&q=80" alt="Tables">
-          <div class="category-card-overlay"><h3>Tables</h3></div>
-        </a>
-        <a href="products.html#other-furniture" class="category-card fade-in">
-          <img src="https://images.unsplash.com/photo-1595428774223-ef5262417080?w=600&q=80" alt="Cabinets & Storage">
-          <div class="category-card-overlay"><h3>Cabinets & Storage</h3></div>
-        </a>
-        <a href="products.html#other-furniture" class="category-card fade-in">
-          <img src="https://images.unsplash.com/photo-1616486338812-3dadae4b4ace?w=600&q=80" alt="Other Furniture">
-          <div class="category-card-overlay"><h3>Other Furniture</h3></div>
-        </a>
+      <div class="category-grid" id="home-category-grid">
+        <div class="home-catalogue-loading" id="home-catalogue-loading">Loading catalogue…</div>
       </div>
     </div>
   </section>
@@ -93,9 +66,9 @@
   <!-- About Preview -->
   <section class="section" style="background-color: var(--color-white);">
     <div class="container">
-      <div class="about-preview fade-in">
-        <div class="about-preview-image">
-          <img src="https://images.unsplash.com/photo-1617806118233-18e1de247200?w=800&q=80" alt="SAIFI UDYOG furniture workshop">
+      <div class="about-preview fade-in about-preview--text">
+        <div class="about-preview-panel" aria-hidden="true">
+          <span>SAIFI UDYOG</span>
         </div>
         <div class="about-preview-content">
           <p class="section-label">Who We Are</p>
@@ -188,6 +161,7 @@
 
   <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore-compat.js"></script>
+  <script src="js/safe.js"></script>
   <script src="js/config.js"></script>
   <script src="js/firebase-config.js"></script>
   <script src="js/db.js"></script>
