@@ -1,36 +1,61 @@
-/* SAIFI UDYOG — Admin Dashboard (Firebase Cloud) */
+/* SAIFI UDYOG — Admin Dashboard (production-hardened) */
 
 let allProducts = [];
 let allCategories = [];
+let dashboardLoaded = false;
+/** Bumped when the product modal closes so in-flight image work is ignored. */
+let imageUploadSession = 0;
 
-document.addEventListener('DOMContentLoaded', async () => {
-  if (!FIREBASE_ENABLED) {
+document.addEventListener('DOMContentLoaded', () => {
+  if (typeof FIREBASE_ENABLED === 'undefined' || !FIREBASE_ENABLED) {
     window.location.href = 'index.html';
     return;
   }
 
+  if (window.SAIFI_SAFE) SAIFI_SAFE.bindGlobalErrorHandlers();
+
   initFirebase();
-  onAuthChange(user => {
-    if (!user) window.location.href = 'index.html';
+
+  // Wait for auth before loading data (avoids race / false logouts)
+  onAuthChange(async (user) => {
+    if (!user) {
+      window.location.href = 'index.html';
+      return;
+    }
+    if (dashboardLoaded) {
+      updateFirebaseStatus();
+      return;
+    }
+    dashboardLoaded = true;
+
+    try {
+      initNavigation();
+      initModals();
+      initProductForm();
+      initCategoryForm();
+      initSettingsForm();
+      initLogout();
+      initSeed();
+      initEnquiries();
+
+      const addBtn = document.getElementById('add-product-btn');
+      const quickBtn = document.getElementById('quick-add-product');
+      const addCatBtn = document.getElementById('add-category-btn');
+      if (addBtn) addBtn.addEventListener('click', () => openProductModal());
+      if (quickBtn) {
+        quickBtn.addEventListener('click', () => {
+          switchPanel('products');
+          openProductModal();
+        });
+      }
+      if (addCatBtn) addCatBtn.addEventListener('click', () => openCategoryModal());
+
+      await loadDashboard();
+    } catch (err) {
+      console.error(err);
+      alert('Admin failed to start: ' + (err.message || err));
+    }
   });
-
-  initNavigation();
-  initModals();
-  initProductForm();
-  initCategoryForm();
-  initSettingsForm();
-  initLogout();
-  initSeed();
-  initEnquiries();
-
-  document.getElementById('add-product-btn').addEventListener('click', () => openProductModal());
-  document.getElementById('quick-add-product').addEventListener('click', () => {
-    switchPanel('products');
-    openProductModal();
-  });
-  document.getElementById('add-category-btn').addEventListener('click', () => openCategoryModal());
-
-  await loadDashboard();
 });
 
 function initNavigation() {
@@ -61,21 +86,96 @@ function initModals() {
 }
 
 function openModal(id) { document.getElementById(id).classList.add('active'); }
+
+function resetProductModalState() {
+  imageUploadSession += 1;
+
+  const form = document.getElementById('product-form');
+  if (form) form.reset();
+
+  const fileInput = document.getElementById('product-image-file');
+  if (fileInput) fileInput.value = '';
+
+  const urlInput = document.getElementById('product-image-url-input');
+  if (urlInput) urlInput.value = '';
+
+  const hidden = document.getElementById('product-image-url');
+  if (hidden) hidden.value = '';
+
+  const preview = document.getElementById('image-preview');
+  if (preview) {
+    preview.removeAttribute('src');
+    preview.style.display = 'none';
+  }
+
+  const hint = document.getElementById('upload-hint');
+  if (hint) hint.style.display = 'block';
+
+  const area = document.getElementById('image-upload-area');
+  if (area) area.classList.remove('has-image');
+
+  const progress = document.getElementById('upload-progress');
+  if (progress) {
+    progress.style.display = 'none';
+    progress.style.color = '';
+    progress.textContent = '';
+  }
+
+  const saveBtn = document.getElementById('save-product-btn');
+  if (saveBtn) {
+    saveBtn.disabled = false;
+    saveBtn.textContent = 'Save Product';
+  }
+}
+
 function closeAllModals() {
+  resetProductModalState();
   document.querySelectorAll('.admin-modal-overlay').forEach(m => m.classList.remove('active'));
 }
 
+const FALLBACK_CATEGORIES = [
+  { id: 'sofa-seating', title: 'Sofa & Seating', order: 1 },
+  { id: 'office-furniture', title: 'Office Furniture', order: 2 },
+  { id: 'home-furniture', title: 'Home Furniture', order: 3 },
+  { id: 'other-furniture', title: 'Other Furniture', order: 4 }
+];
+
 async function loadDashboard() {
   try {
-    allCategories = await getCategories();
-    allProducts = await getProducts();
+    allCategories = await ensureDefaultCategories();
+    if (!allCategories || !allCategories.length) {
+      allCategories = FALLBACK_CATEGORIES.slice();
+    }
+    allProducts = await getProducts().catch(err => {
+      console.warn('getProducts failed:', err);
+      return [];
+    });
     renderStats();
     renderProductsTable();
     renderCategoriesGrid();
     populateCategorySelect();
     await loadSettingsForm();
+    updateFirebaseStatus();
   } catch (err) {
-    alert('Error loading data: ' + err.message + '\n\nCheck Firebase setup (Firestore + Storage enabled).');
+    console.error(err);
+    // Never leave categories empty — dropdown must work
+    allCategories = FALLBACK_CATEGORIES.slice();
+    populateCategorySelect();
+    updateFirebaseStatus();
+    alert('Error loading data: ' + err.message + '\n\nCategories are still available. You can try adding a product.\n\nAlso check Firebase Firestore rules.');
+  }
+}
+
+function updateFirebaseStatus() {
+  const el = document.getElementById('firebase-status');
+  if (!el) return;
+  const user = typeof getCurrentUser === 'function' ? getCurrentUser() : null;
+  if (user) {
+    el.textContent = 'Connected as ' + user.email;
+    el.className = 'firebase-status ok';
+  } else {
+    el.textContent = 'Not connected to Firebase';
+    el.className = 'firebase-status fail';
   }
 }
 
@@ -101,37 +201,63 @@ function renderProductsTable() {
   table.style.display = 'table';
   tbody.innerHTML = allProducts.map(p => {
     const cat = allCategories.find(c => c.id === p.categoryId);
+    const thumb = window.SAIFI_SAFE
+      ? SAIFI_SAFE.escapeHtml(SAIFI_SAFE.safeImageUrl(p.imageUrl))
+      : esc(p.imageUrl || '');
+    const placeholder = window.SAIFI_SAFE ? SAIFI_SAFE.PLACEHOLDER_IMAGE : '';
     return `<tr>
-      <td><img class="product-thumb" src="${esc(p.imageUrl)}" alt="" onerror="this.style.background='#eee'"></td>
+      <td><img class="product-thumb" src="${thumb}" alt="" onerror="this.onerror=null;this.src='${placeholder}'"></td>
       <td><strong>${esc(p.name)}</strong></td>
       <td>${esc(cat?.title || p.categoryId)}</td>
       <td>${esc(p.subcategory || '—')}</td>
       <td><span class="badge ${p.active === false ? 'inactive' : ''}">${p.active === false ? 'Hidden' : 'Active'}</span></td>
       <td class="table-actions">
-        <button class="admin-btn admin-btn-outline admin-btn-sm" onclick="editProduct('${p.id}')">Edit</button>
-        <button class="admin-btn admin-btn-danger admin-btn-sm" onclick="removeProduct('${p.id}')">Delete</button>
+        <button class="admin-btn admin-btn-outline admin-btn-sm" onclick="editProduct('${esc(p.id)}')">Edit</button>
+        <button class="admin-btn admin-btn-danger admin-btn-sm" onclick="removeProduct('${esc(p.id)}')">Delete</button>
       </td>
     </tr>`;
   }).join('');
 }
 
 function populateCategorySelect() {
-  document.getElementById('product-category').innerHTML = allCategories.map(c =>
+  const select = document.getElementById('product-category');
+  if (!select) return;
+
+  const list = (allCategories && allCategories.length)
+    ? allCategories
+    : FALLBACK_CATEGORIES;
+
+  select.innerHTML = list.map(c =>
     `<option value="${c.id}">${esc(c.title)}</option>`
   ).join('');
 }
 
 function openProductModal(product = null) {
-  document.getElementById('product-form').reset();
+  // Cancel any previous upload session and clear leftover UI
+  resetProductModalState();
+
+  // Always refresh category options before opening
+  if (!allCategories || !allCategories.length) {
+    allCategories = FALLBACK_CATEGORIES.slice();
+  }
+  populateCategorySelect();
+
   document.getElementById('product-modal-title').textContent = product ? 'Edit Product' : 'Add Product';
   document.getElementById('product-id').value = product?.id || '';
   document.getElementById('product-name').value = product?.name || '';
   document.getElementById('product-description').value = product?.description || '';
-  document.getElementById('product-category').value = product?.categoryId || allCategories[0]?.id || '';
+
+  // Re-populate after reset (reset can clear selection)
+  populateCategorySelect();
+  const preferred = product?.categoryId || allCategories[0]?.id || FALLBACK_CATEGORIES[0].id;
+  document.getElementById('product-category').value = preferred;
+
   document.getElementById('product-subcategory').value = product?.subcategory || '';
   document.getElementById('product-order').value = product?.order || 0;
   document.getElementById('product-active').value = product?.active === false ? 'false' : 'true';
   document.getElementById('product-image-url').value = product?.imageUrl || '';
+  const urlInput = document.getElementById('product-image-url-input');
+  if (urlInput) urlInput.value = product?.imageUrl || '';
 
   const preview = document.getElementById('image-preview');
   const hint = document.getElementById('upload-hint');
@@ -162,52 +288,133 @@ window.removeProduct = async id => {
   } catch (err) { alert(err.message); }
 };
 
-function initProductForm() {
-  document.getElementById('product-image-file').addEventListener('change', async (e) => {
-    const file = e.target.files[0];
-    if (!file) return;
-    const progress = document.getElementById('upload-progress');
+function setImagePreview(url) {
+  const preview = document.getElementById('image-preview');
+  const hint = document.getElementById('upload-hint');
+  const area = document.getElementById('image-upload-area');
+  const hidden = document.getElementById('product-image-url');
+  if (hidden) hidden.value = url || '';
+  if (!preview || !area) return;
+  if (url) {
+    preview.src = url;
+    preview.style.display = 'block';
+    if (hint) hint.style.display = 'none';
+    area.classList.add('has-image');
+  } else {
+    preview.removeAttribute('src');
+    preview.style.display = 'none';
+    if (hint) hint.style.display = 'block';
+    area.classList.remove('has-image');
+  }
+}
+
+async function handleSelectedImageFile(file) {
+  const progress = document.getElementById('upload-progress');
+  if (!file) return;
+
+  const session = ++imageUploadSession;
+
+  if (progress) {
     progress.style.display = 'block';
-    progress.textContent = 'Uploading to cloud...';
-    try {
-      const path = `products/${Date.now()}_${file.name.replace(/\s/g, '_')}`;
-      const url = await uploadImage(file, path);
-      document.getElementById('product-image-url').value = url;
-      const preview = document.getElementById('image-preview');
-      preview.src = url;
-      preview.style.display = 'block';
-      document.getElementById('upload-hint').style.display = 'none';
-      document.getElementById('image-upload-area').classList.add('has-image');
-      progress.textContent = 'Uploaded! Image will appear on live site.';
-      setTimeout(() => { progress.style.display = 'none'; }, 2000);
-    } catch (err) {
-      progress.textContent = 'Upload failed: ' + err.message;
+    progress.style.color = '';
+    progress.textContent = 'Processing image...';
+  }
+  try {
+    if (typeof uploadProductImage !== 'function') {
+      throw new Error('Upload function missing. Hard refresh the page (Ctrl+Shift+R).');
     }
-  });
+    const url = await uploadProductImage(file);
+    // Modal was closed (or a newer pick started) — discard this result
+    if (session !== imageUploadSession) return;
+    if (!url) throw new Error('No image data returned.');
+    setImagePreview(url);
+    const urlInput = document.getElementById('product-image-url-input');
+    if (urlInput) {
+      // Keep text field empty for embedded images; hidden field holds the real value
+      urlInput.value = url.startsWith('data:') ? '' : url;
+    }
+    if (progress) {
+      progress.style.color = '#27ae60';
+      progress.textContent = '✓ Photo ready — fill details and click Save Product';
+    }
+  } catch (err) {
+    if (session !== imageUploadSession) return;
+    console.error(err);
+    if (progress) {
+      progress.style.color = 'var(--admin-danger)';
+      progress.textContent = 'Failed: ' + (err.message || err);
+    }
+    alert('Photo upload failed:\n\n' + (err.message || err) + '\n\nTip: use a JPG/PNG under 5MB, or paste an image URL instead.');
+  }
+}
+
+function initProductForm() {
+  const fileInput = document.getElementById('product-image-file');
+  const urlInput = document.getElementById('product-image-url-input');
+  const pickBtn = document.getElementById('pick-image-btn');
+
+  if (pickBtn && fileInput) {
+    pickBtn.addEventListener('click', () => fileInput.click());
+  }
+
+  if (urlInput) {
+    urlInput.addEventListener('input', () => {
+      const url = urlInput.value.trim();
+      if (url) setImagePreview(url);
+    });
+  }
+
+  if (fileInput) {
+    fileInput.addEventListener('change', async (e) => {
+      const file = e.target.files && e.target.files[0];
+      await handleSelectedImageFile(file);
+    });
+  }
 
   document.getElementById('product-form').addEventListener('submit', async (e) => {
     e.preventDefault();
     const btn = document.getElementById('save-product-btn');
-    const imageUrl = document.getElementById('product-image-url').value.trim();
-    if (!imageUrl) { alert('Please upload a product image.'); return; }
+    const imageUrl = (document.getElementById('product-image-url')?.value || '').trim()
+      || (document.getElementById('product-image-url-input')?.value || '').trim();
+
+    if (!imageUrl) {
+      alert('Please choose a photo (Choose Photo) OR paste an Image URL.');
+      return;
+    }
+
+    const name = document.getElementById('product-name').value.trim();
+    const categoryId = document.getElementById('product-category').value;
+    if (!name || !categoryId) {
+      alert('Please enter product name and select a category.');
+      return;
+    }
 
     btn.disabled = true;
     btn.textContent = 'Saving...';
     try {
-      await saveProduct({
+      const savedId = await saveProduct({
         id: document.getElementById('product-id').value || undefined,
-        name: document.getElementById('product-name').value.trim(),
+        name,
         description: document.getElementById('product-description').value.trim(),
-        categoryId: document.getElementById('product-category').value,
+        categoryId,
         subcategory: document.getElementById('product-subcategory').value.trim(),
         order: parseInt(document.getElementById('product-order').value) || 0,
         active: document.getElementById('product-active').value === 'true',
         imageUrl
       });
-      closeAllModals();
+
       await loadDashboard();
+      const found = allProducts.find(p => p.id === savedId || p.name === name);
+      if (!found) {
+        throw new Error('Saved but not visible yet. Check Firestore rules / login, then refresh.');
+      }
+
+      closeAllModals();
+      alert('Product saved!\n\n"' + name + '" is now on the website.');
+      switchPanel('products');
     } catch (err) {
-      alert('Error: ' + err.message);
+      console.error(err);
+      alert('Could not save product:\n\n' + err.message);
     } finally {
       btn.disabled = false;
       btn.textContent = 'Save Product';
@@ -218,11 +425,11 @@ function initProductForm() {
 function renderCategoriesGrid() {
   const grid = document.getElementById('categories-grid');
   if (!allCategories.length) {
-    grid.innerHTML = '<div class="empty-state"><p>No categories. Click Import Sample Products on Overview.</p></div>';
+    grid.innerHTML = '<div class="empty-state"><p>No categories yet. Add a category, or use Load Demo Data (optional) on Overview.</p></div>';
     return;
   }
   grid.innerHTML = allCategories.map(c => {
-    const count = allProducts.filter(p => p.categoryId === c.id).length;
+    const count = allProducts.filter(p => p.categoryId === c.id && p.active !== false && p.active !== 'false').length;
     return `<div class="category-admin-card">
       <h4>${esc(c.title)}</h4>
       <p>${esc(c.description || '')}</p>
@@ -367,17 +574,17 @@ window.deleteEnq = async id => {
 
 function initSeed() {
   document.getElementById('seed-btn').addEventListener('click', async () => {
-    if (!confirm('Import sample furniture catalogue to cloud? (Only do this once)')) return;
+    if (!confirm('Load optional DEMO products (stock photos)?\n\nOnly for testing. For a client demo, prefer adding real products with your own photos.')) return;
     const btn = document.getElementById('seed-btn');
     btn.disabled = true;
-    btn.textContent = 'Importing...';
+    btn.textContent = 'Loading…';
     try {
       await seedDatabase();
-      alert('Sample products imported! Check your live products page.');
+      alert('Demo data loaded. Replace with real products before showing the client.');
       await loadDashboard();
     } catch (err) { alert(err.message); }
     btn.disabled = false;
-    btn.textContent = 'Import Sample Products';
+    btn.textContent = 'Load Demo Data (optional)';
   });
 }
 
