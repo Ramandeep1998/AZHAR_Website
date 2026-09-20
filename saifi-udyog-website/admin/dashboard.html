@@ -33,8 +33,8 @@
           <span id="firebase-status" class="firebase-status">Checking Firebase...</span>
         </div>
         <p class="admin-tip" style="margin:0.75rem 0 0;font-size:0.9rem;color:#666;">
-          Products appear on the live site only if Status is <strong>Active</strong> and Firestore Rules allow public <strong>read</strong>.
-          Open <a href="../products.html" target="_blank" rel="noopener">Products page</a> after publishing rules.
+          The live website shows <strong>Firebase data only</strong>. Saving here writes to Firestore; CSS/UI edits never delete products.
+          Status must be <strong>Active</strong>. After save, open <a href="../products.html" target="_blank" rel="noopener">Products page</a> to verify.
         </p>
         <div class="stats-grid">
           <div class="stat-card"><div class="stat-value" id="stat-products">—</div><div class="stat-label">Products</div></div>
@@ -45,7 +45,6 @@
           <div class="admin-card-header"><h3>Quick Actions</h3></div>
           <div style="padding:1.5rem;display:flex;gap:1rem;flex-wrap:wrap;">
             <button class="admin-btn admin-btn-accent" id="quick-add-product">+ Add Product</button>
-            <button class="admin-btn admin-btn-outline" id="seed-btn" title="Optional: loads demo items for testing only">Load Demo Data (optional)</button>
             <a href="../products.html" target="_blank" class="admin-btn admin-btn-outline">View Live Catalogue</a>
           </div>
         </div>
@@ -204,7 +203,6 @@
   <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-storage-compat.js"></script>
   <script src="../js/safe.js"></script>
   <script src="../js/firebase-config.js"></script>
-  <script src="../js/products-data.js"></script>
   <script src="../js/db.js"></script>
   <script src="admin-app.js"></script>
 </body>

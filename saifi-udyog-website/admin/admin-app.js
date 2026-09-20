@@ -35,7 +35,6 @@ document.addEventListener('DOMContentLoaded', () => {
       initCategoryForm();
       initSettingsForm();
       initLogout();
-      initSeed();
       initEnquiries();
 
       const addBtn = document.getElementById('add-product-btn');
@@ -134,10 +133,14 @@ function closeAllModals() {
 }
 
 const FALLBACK_CATEGORIES = [
-  { id: 'sofa-seating', title: 'Sofa & Seating', order: 1 },
-  { id: 'office-furniture', title: 'Office Furniture', order: 2 },
-  { id: 'home-furniture', title: 'Home Furniture', order: 3 },
-  { id: 'other-furniture', title: 'Other Furniture', order: 4 }
+  { id: 'sofas', title: 'Sofas', order: 1 },
+  { id: 'beds', title: 'Beds', order: 2 },
+  { id: 'chairs', title: 'Chairs', order: 3 },
+  { id: 'tables', title: 'Tables', order: 4 },
+  { id: 'office-furniture', title: 'Office Furniture', order: 5 },
+  { id: 'workstations', title: 'Workstations', order: 6 },
+  { id: 'cabinets', title: 'Cabinets', order: 7 },
+  { id: 'custom-furniture', title: 'Custom Furniture', order: 8 }
 ];
 
 async function loadDashboard() {
@@ -425,7 +428,7 @@ function initProductForm() {
 function renderCategoriesGrid() {
   const grid = document.getElementById('categories-grid');
   if (!allCategories.length) {
-    grid.innerHTML = '<div class="empty-state"><p>No categories yet. Add a category, or use Load Demo Data (optional) on Overview.</p></div>';
+    grid.innerHTML = '<div class="empty-state"><p>No categories yet. Click <strong>+ Add Category</strong> to create one.</p></div>';
     return;
   }
   grid.innerHTML = allCategories.map(c => {
@@ -571,22 +574,6 @@ window.deleteEnq = async id => {
   await deleteEnquiry(id);
   await loadEnquiries();
 };
-
-function initSeed() {
-  document.getElementById('seed-btn').addEventListener('click', async () => {
-    if (!confirm('Load optional DEMO products (stock photos)?\n\nOnly for testing. For a client demo, prefer adding real products with your own photos.')) return;
-    const btn = document.getElementById('seed-btn');
-    btn.disabled = true;
-    btn.textContent = 'Loading…';
-    try {
-      await seedDatabase();
-      alert('Demo data loaded. Replace with real products before showing the client.');
-      await loadDashboard();
-    } catch (err) { alert(err.message); }
-    btn.disabled = false;
-    btn.textContent = 'Load Demo Data (optional)';
-  });
-}
 
 function initLogout() {
   document.getElementById('logout-btn').addEventListener('click', async (e) => {

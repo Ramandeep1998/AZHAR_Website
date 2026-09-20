@@ -1,5 +1,10 @@
 /**
- * SAIFI UDYOG — Database Layer (production-hardened)
+ * SAIFI UDYOG — Database Layer
+ *
+ * - Public site READS from Firestore only.
+ * - All products/categories are created in the Admin panel UI.
+ * - Writes happen only when an admin is logged in.
+ * - CSS/UI styling changes never write or delete Firestore data.
  */
 
 let db = null;
@@ -7,10 +12,14 @@ let storage = null;
 let auth = null;
 
 const DEFAULT_CATEGORIES = [
-  { id: 'sofa-seating', title: 'Sofa & Seating', description: 'Comfortable and stylish seating solutions for living rooms and lounges.', order: 1 },
-  { id: 'office-furniture', title: 'Office Furniture', description: 'Functional and ergonomic furniture designed for productive workspaces.', order: 2 },
-  { id: 'home-furniture', title: 'Home Furniture', description: 'Beautiful furniture pieces to make every room in your home feel complete.', order: 3 },
-  { id: 'other-furniture', title: 'Other Furniture', description: 'Additional furniture solutions including storage, shelving and custom pieces.', order: 4 }
+  { id: 'sofas', title: 'Sofas', description: 'Sofa sets and seating for living rooms and lounges.', order: 1 },
+  { id: 'beds', title: 'Beds', description: 'Beds and bedroom furniture for restful spaces.', order: 2 },
+  { id: 'chairs', title: 'Chairs', description: 'Chairs for home, lounge and waiting areas.', order: 3 },
+  { id: 'tables', title: 'Tables', description: 'Dining, coffee and side tables for every room.', order: 4 },
+  { id: 'office-furniture', title: 'Office Furniture', description: 'Desks, chairs and furniture for productive workspaces.', order: 5 },
+  { id: 'workstations', title: 'Workstations', description: 'Modular and linear workstations for offices.', order: 6 },
+  { id: 'cabinets', title: 'Cabinets', description: 'Storage cabinets, cupboards and display units.', order: 7 },
+  { id: 'custom-furniture', title: 'Custom Furniture', description: 'Bespoke furniture made to your requirements.', order: 8 }
 ];
 
 const MAX_IMAGE_DATA_URL_CHARS = 450000; // keep Firestore docs safely under 1MB
@@ -111,6 +120,7 @@ async function getCategories() {
   }
   try {
     const snap = await db.collection('categories').get();
+    // Empty Firestore = empty list (do not invent cloud data)
     if (snap.empty) return [];
     return snap.docs
       .map(d => ({ id: d.id, ...d.data() }))
@@ -121,21 +131,29 @@ async function getCategories() {
   }
 }
 
+/**
+ * Upserts the 8 default categories into Firestore (merge only — never deletes products).
+ * Safe to call on every admin login.
+ */
 async function ensureDefaultCategories() {
   const fallback = DEFAULT_CATEGORIES.map(c => ({ ...c }));
   if (!isFirebaseReady()) return fallback;
 
   try {
-    let existing = await getCategories();
-    if (existing.length) return existing;
+    if (getCurrentUser()) {
+      const batch = db.batch();
+      DEFAULT_CATEGORIES.forEach(cat => {
+        batch.set(db.collection('categories').doc(cat.id), {
+          title: cat.title,
+          description: cat.description || '',
+          order: Number(cat.order) || 0,
+          updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+        }, { merge: true });
+      });
+      await batch.commit();
+    }
 
-    const batch = db.batch();
-    DEFAULT_CATEGORIES.forEach(cat => {
-      const ref = db.collection('categories').doc(cat.id);
-      batch.set(ref, cat, { merge: true });
-    });
-    await batch.commit();
-    existing = await getCategories();
+    const existing = await getCategories();
     return existing.length ? existing : fallback;
   } catch (err) {
     console.warn('ensureDefaultCategories fallback:', err);
@@ -168,7 +186,7 @@ async function deleteCategory(id) {
 
 /* ---- Products ---- */
 async function getProducts() {
-  // Never invent sample products — empty cloud = empty list
+  // Empty cloud = empty list (admin must add products via UI)
   if (!isFirebaseReady()) return [];
   try {
     const snap = await db.collection('products').get();
@@ -179,29 +197,6 @@ async function getProducts() {
     console.error('getProducts failed:', err);
     throw new Error(firebaseErrorMessage(err));
   }
-}
-
-function flattenLocalProducts() {
-  if (typeof CATALOGUE_DATA === 'undefined') return [];
-  const products = [];
-  let order = 0;
-  CATALOGUE_DATA.forEach(cat => {
-    (cat.subcategories || []).forEach(sub => {
-      (sub.products || []).forEach(p => {
-        products.push({
-          id: `local-${order++}`,
-          name: p.name,
-          description: p.description,
-          imageUrl: p.image,
-          categoryId: cat.id,
-          subcategory: sub.name,
-          order,
-          active: true
-        });
-      });
-    });
-  });
-  return products;
 }
 
 function validateProductInput(product) {
@@ -243,15 +238,27 @@ async function saveProduct(product) {
   data.updatedAt = firebase.firestore.FieldValue.serverTimestamp();
 
   try {
-    if (product.id && !String(product.id).startsWith('local-')) {
-      await db.collection('products').doc(product.id).set(data, { merge: true });
-      return product.id;
+    let id = product.id && !String(product.id).startsWith('local-')
+      ? String(product.id)
+      : null;
+
+    if (id) {
+      // merge:true updates fields only — never deletes the document or other fields
+      await db.collection('products').doc(id).set(data, { merge: true });
+    } else {
+      const ref = await db.collection('products').add({
+        ...data,
+        createdAt: firebase.firestore.FieldValue.serverTimestamp()
+      });
+      id = ref.id;
     }
-    const ref = await db.collection('products').add({
-      ...data,
-      createdAt: firebase.firestore.FieldValue.serverTimestamp()
-    });
-    return ref.id;
+
+    // Verify the write landed in Firestore
+    const check = await db.collection('products').doc(id).get();
+    if (!check.exists) {
+      throw new Error('Save did not appear in Firestore. Check rules and try again.');
+    }
+    return id;
   } catch (err) {
     console.error('saveProduct failed:', err);
     throw new Error(firebaseErrorMessage(err));
@@ -423,64 +430,73 @@ async function uploadProductImage(file) {
   }
 }
 
-/* ---- Public catalogue (live Firebase only — never sample / Unsplash filler) ---- */
+/* ---- Public catalogue (Firebase ONLY — CSS/UI never writes or clears data) ---- */
 function isProductPubliclyVisible(p) {
   if (!p) return false;
-  // Hidden only when explicitly false (boolean or string)
   if (p.active === false || p.active === 'false') return false;
   return true;
 }
 
 function mapProductForCatalogue(p) {
   return {
+    id: p.id || '',
     name: p.name || 'Product',
     description: p.description || '',
-    image: p.imageUrl || ''
+    image: p.imageUrl || '',
+    subcategory: p.subcategory || ''
   };
 }
 
 /**
- * Loads catalogue for the public website.
- * Returns { data, error } so the UI can distinguish empty vs permission failure.
+ * Public website catalogue — reads Firestore only.
+ * Never falls back to local demo data (that would hide missing Firebase saves).
+ * UI / CSS changes cannot wipe Firestore; only authenticated admin delete can.
  */
 async function getCatalogueData() {
-  const result = { data: [], error: null };
   try {
     if (typeof initFirebase === 'function') initFirebase();
     if (!isFirebaseReady()) {
-      result.error = 'Firebase is not connected. Check firebase-config.js.';
-      return result.data;
+      window.__SAIFI_CATALOGUE_ERROR =
+        'Firebase is not connected. Check js/firebase-config.js.';
+      return [];
     }
 
     let categories = [];
     let productsRaw = [];
 
     try {
-      categories = await getCategories();
+      const snap = await db.collection('categories').get();
+      categories = snap.docs
+        .map(d => ({ id: d.id, ...d.data() }))
+        .sort((a, b) => (Number(a.order) || 0) - (Number(b.order) || 0));
     } catch (err) {
       console.error('getCategories (public):', err);
-      result.error = firebaseErrorMessage(err);
-      categories = [];
+      window.__SAIFI_CATALOGUE_ERROR = firebaseErrorMessage(err);
+      return [];
     }
 
     try {
       productsRaw = await getProducts();
     } catch (err) {
       console.error('getProducts (public):', err);
-      result.error = firebaseErrorMessage(err);
-      // Permission denied while admin works = Firestore rules block public read
+      let msg = firebaseErrorMessage(err);
       if (/permission|insufficient|unauth/i.test(String(err.message || err.code || ''))) {
-        result.error =
-          'Firestore is blocking public reads. In Firebase Console → Firestore → Rules, publish rules that allow anyone to read products and categories.';
+        msg =
+          'Firestore is blocking public reads. Publish rules that allow anyone to read products and categories.';
       }
-      window.__SAIFI_CATALOGUE_ERROR = result.error;
-      return result.data;
+      window.__SAIFI_CATALOGUE_ERROR = msg;
+      return [];
     }
 
     const products = (productsRaw || []).filter(isProductPubliclyVisible);
     window.__SAIFI_CATALOGUE_ERROR = null;
 
-    const cats = (categories && categories.length) ? categories : [];
+    // If categories were never written, still show Firebase products under known labels
+    let cats = categories.slice();
+    if (!cats.length && products.length) {
+      cats = DEFAULT_CATEGORIES.map(c => ({ ...c }));
+    }
+
     const knownIds = new Set(cats.map(c => c.id));
     const orphanProducts = products.filter(p => !knownIds.has(p.categoryId));
     const allCats = cats.slice();
@@ -493,8 +509,8 @@ async function getCatalogueData() {
       });
     }
 
-    // Always include every category — even with 0 products (UI shows empty message)
-    result.data = allCats.map(cat => {
+    // Include every Firestore category (empty ones show “No product under this category”)
+    return allCats.map(cat => {
       const catProducts = cat.id === '_other'
         ? orphanProducts
         : products.filter(p => p.categoryId === cat.id);
@@ -516,8 +532,6 @@ async function getCatalogueData() {
         }))
       };
     });
-
-    return result.data;
   } catch (err) {
     console.error('getCatalogueData failed:', err);
     window.__SAIFI_CATALOGUE_ERROR = err.message || String(err);
@@ -605,25 +619,4 @@ async function deleteEnquiry(id) {
   if (!isFirebaseReady()) return;
   requireAuth();
   await db.collection('enquiries').doc(id).delete();
-}
-
-/* ---- Seed ---- */
-async function seedDatabase() {
-  if (!isFirebaseReady()) throw new Error('Firebase not configured');
-  requireAuth();
-
-  await ensureDefaultCategories();
-  const local = flattenLocalProducts();
-  for (const p of local) {
-    await db.collection('products').add({
-      name: p.name,
-      description: p.description,
-      imageUrl: p.imageUrl,
-      categoryId: p.categoryId,
-      subcategory: p.subcategory,
-      order: p.order,
-      active: true,
-      createdAt: firebase.firestore.FieldValue.serverTimestamp()
-    });
-  }
 }

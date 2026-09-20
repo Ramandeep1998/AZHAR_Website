@@ -97,12 +97,15 @@ async function initHomeCatalogue() {
       const imgHtml = img
         ? `<img src="${escapeHomeHtml(img)}" alt="${escapeHomeHtml(cat.title || '')}" loading="lazy">`
         : `<div class="category-card-placeholder"></div>`;
+      const countLabel = count === 0
+        ? 'No products yet'
+        : `${count} product${count === 1 ? '' : 's'}`;
 
       return `<a href="products.html#${escapeHomeHtml(cat.id || '')}" class="category-card fade-in">
         ${imgHtml}
         <div class="category-card-overlay">
           <h3>${escapeHomeHtml(cat.title || '')}</h3>
-          <span class="category-card-count">${count} product${count === 1 ? '' : 's'}</span>
+          <span class="category-card-count">${countLabel}</span>
         </div>
       </a>`;
     }).join('');
@@ -214,20 +217,26 @@ function initScrollAnimations() {
 
 /* ---- Catalogue Category Navigation ---- */
 function initCatalogueNav() {
-  const navLinks = document.querySelectorAll('.catalogue-nav a');
+  const navLinks = document.querySelectorAll('.category-item, .catalogue-nav a, .catalogue-nav-list a');
   const sections = document.querySelectorAll('.catalogue-section[id]');
 
   if (!navLinks.length || !sections.length) return;
+
+  const headerOffset = () => {
+    const header = document.querySelector('.header');
+    return (header ? header.offsetHeight : 80) + 16;
+  };
 
   navLinks.forEach(link => {
     link.addEventListener('click', (e) => {
       e.preventDefault();
       const target = document.querySelector(link.getAttribute('href'));
       if (target) {
-        const offset = 160;
-        const top = target.getBoundingClientRect().top + window.scrollY - offset;
+        const top = target.getBoundingClientRect().top + window.scrollY - headerOffset();
         window.scrollTo({ top, behavior: 'smooth' });
       }
+      navLinks.forEach(l => l.classList.remove('active'));
+      link.classList.add('active');
     });
   });
 
@@ -242,7 +251,7 @@ function initCatalogueNav() {
         }
       });
     },
-    { threshold: 0.2, rootMargin: '-160px 0px -55% 0px' }
+    { threshold: 0.15, rootMargin: '-20% 0px -55% 0px' }
   );
 
   sections.forEach(section => sectionObserver.observe(section));
