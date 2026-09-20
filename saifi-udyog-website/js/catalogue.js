@@ -1,4 +1,4 @@
-/* SAIFI UDYOG — Catalogue renderer (live Firebase only) */
+/* SAIFI UDYOG — Catalogue renderer (Firebase only) */
 
 let catalogueData = [];
 
@@ -52,7 +52,7 @@ match /categories/{doc} { allow read: if true; allow write: if request.auth != n
   return `<section class="catalogue-section"><div class="container">
     <div class="no-results fade-in visible">
       <h3>Catalogue coming soon</h3>
-      <p>No active products are published yet. If you added one in admin, set Status to <strong>Active</strong> (not Hidden), then refresh this page.</p>
+      <p>Products will appear here after they are added in the admin panel and set to <strong>Active</strong>.</p>
       <p style="margin-top:1rem;"><a href="contact.html">Contact us</a> for current availability.</p>
     </div></div></section>`;
 }
@@ -177,19 +177,39 @@ function bindEnquireLinks(root) {
   });
 }
 
+function categoryIconSvg(id) {
+  const icons = {
+    sofas: '<path d="M4 10V8a3 3 0 0 1 3-3h10a3 3 0 0 1 3 3v2M3 14v4h2v-2h14v2h2v-4a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2z"/>',
+    beds: '<path d="M3 12V7a2 2 0 0 1 2-2h6v7M3 12h18v6M3 18h18M13 5h6a2 2 0 0 1 2 2v5"/>',
+    chairs: '<path d="M7 10V6a2 2 0 0 1 2-2h6a2 2 0 0 1 2 2v4M6 10h12v3a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2v-3zM8 15v4M16 15v4"/>',
+    tables: '<path d="M4 10h16M6 10v8M18 10v8M8 14h8"/>',
+    'office-furniture': '<path d="M4 20V8l8-4 8 4v12M4 12h16M12 8v12"/>',
+    workstations: '<path d="M3 16h18M5 16V9h14v7M8 9V6h8v3M9 19h6"/>',
+    cabinets: '<path d="M5 4h14v16H5zM5 12h14M12 12v8M9 8h.01M9 16h.01"/>',
+    'custom-furniture': '<path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/>',
+    'home-furniture': '<path d="M3 11l9-8 9 8M5 10v10h14V10"/>',
+    'sofa-seating': '<path d="M4 10V8a3 3 0 0 1 3-3h10a3 3 0 0 1 3 3v2M3 14v4h2v-2h14v2h2v-4a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2z"/>',
+    'other-furniture': '<path d="M12 3v18M5 8h14M5 16h14"/>'
+  };
+  const path = icons[id] || icons['other-furniture'];
+  return `<svg class="category-item-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${path}</svg>`;
+}
+
 function updateCatalogueNav(categories) {
-  const nav = document.querySelector('.catalogue-nav .container');
+  const nav = document.querySelector('.category-nav-list')
+    || document.querySelector('.catalogue-nav-list')
+    || document.querySelector('#catalogue-sidebar-nav');
   if (!nav) return;
   try {
-    const visible = (categories || []).filter(c =>
-      c && Array.isArray(c.subcategories) && c.subcategories.some(s => s && s.products && s.products.length)
-    );
-    if (!visible.length) {
-      nav.innerHTML = '';
+    const list = (categories || []).filter(c => c && c.id && c.id !== '_other');
+    if (!list.length) {
+      nav.innerHTML = '<p class="catalogue-nav-empty">No categories yet</p>';
       return;
     }
-    nav.innerHTML = visible.map((c, i) =>
-      `<a href="#${escapeHtml(c.id || '')}" class="${i === 0 ? 'active' : ''}">${escapeHtml(c.title || '')}</a>`
+    nav.innerHTML = list.map((c, i) =>
+      `<a href="#${escapeHtml(c.id || '')}" class="category-item${i === 0 ? ' active' : ''}">
+        <span class="category-item-left">${categoryIconSvg(c.id)}${escapeHtml(c.title || '')}</span>
+      </a>`
     ).join('');
   } catch (e) {
     console.warn(e);

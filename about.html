@@ -39,8 +39,8 @@
         <h1>About SAIFI UDYOG</h1>
         <p style="font-size: 1.1rem; margin-top: 1rem; max-width: 520px;">We are a furniture manufacturer committed to creating quality pieces that bring comfort and style to every space.</p>
       </div>
-      <div class="about-hero-image fade-in">
-        <img src="https://images.unsplash.com/photo-1617806118233-18e1de247200?w=800&q=80" alt="SAIFI UDYOG furniture craftsmanship">
+      <div class="about-hero-panel fade-in" aria-hidden="true">
+        <span>Crafted for homes, offices &amp; commercial spaces</span>
       </div>
     </div>
   </section>
@@ -48,10 +48,7 @@
   <!-- What We Do -->
   <section class="section">
     <div class="container">
-      <div class="about-block fade-in">
-        <div class="about-block-image">
-          <img src="https://images.unsplash.com/photo-1618221197170-2f1629a2d1ee?w=800&q=80" alt="Furniture showroom">
-        </div>
+      <div class="about-block fade-in about-block--text">
         <div class="about-block-content">
           <p class="section-label">What We Do</p>
           <h2>Crafting Furniture for Every Space</h2>
@@ -60,10 +57,7 @@
         </div>
       </div>
 
-      <div class="about-block reverse fade-in">
-        <div class="about-block-image">
-          <img src="https://images.unsplash.com/photo-1555041469-a586c61ea9bc?w=800&q=80" alt="Sofa and seating furniture">
-        </div>
+      <div class="about-block fade-in about-block--text">
         <div class="about-block-content">
           <p class="section-label">Our Range</p>
           <h2>Furniture Categories</h2>
@@ -72,13 +66,11 @@
           <p><strong>Office Furniture</strong> — Office chairs, desks, workstations and conference tables for productive workspaces.</p>
           <p><strong>Home Furniture</strong> — Beds, tables, chairs and storage furniture for bedrooms, dining rooms and living areas.</p>
           <p><strong>Other Furniture</strong> — Cabinets, shelves and custom-made pieces tailored to your requirements.</p>
+          <p style="margin-top:1rem;"><a href="products.html" class="btn btn-wood">View live catalogue</a></p>
         </div>
       </div>
 
-      <div class="about-block fade-in">
-        <div class="about-block-image">
-          <img src="https://images.unsplash.com/photo-1497366216548-37526070297c?w=800&q=80" alt="Office furniture">
-        </div>
+      <div class="about-block fade-in about-block--text">
         <div class="about-block-content">
           <p class="section-label">Our Commitment</p>
           <h2>Quality &amp; Durability</h2>
@@ -138,10 +130,10 @@
         <div>
           <h4>Contact</h4>
           <ul class="footer-contact">
-            <li>Phone: [PHONE NUMBER]</li>
-            <li>WhatsApp: [WHATSAPP NUMBER]</li>
-            <li>Email: [EMAIL]</li>
-            <li>Address: [ADDRESS]</li>
+            <li>Phone: <span data-contact="phone"></span></li>
+            <li>WhatsApp: <span data-contact="whatsapp"></span></li>
+            <li>Email: <span data-contact="email"></span></li>
+            <li>Address: <span data-contact="address"></span></li>
           </ul>
         </div>
       </div>
@@ -151,6 +143,12 @@
     </div>
   </footer>
 
+  <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore-compat.js"></script>
+  <script src="js/safe.js"></script>
+  <script src="js/config.js"></script>
+  <script src="js/firebase-config.js"></script>
+  <script src="js/db.js"></script>
   <script src="js/main.js"></script>
 </body>
 </html>

@@ -31,7 +31,7 @@
     </div>
   </header>
 
-  <section class="page-hero">
+  <section class="page-hero page-hero--compact">
     <div class="container">
       <p class="section-label">Digital Showroom</p>
       <h1>Our Products</h1>
@@ -39,26 +39,33 @@
     </div>
   </section>
 
-  <!-- Search -->
-  <section class="catalogue-search-bar">
-    <div class="container">
-      <div class="search-wrapper fade-in">
-        <svg class="search-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-          <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-        </svg>
-        <input type="search" id="product-search" placeholder="Search products — sofa, bed, office chair..." aria-label="Search products">
+  <div class="catalogue-layout">
+    <aside class="category-sidebar" id="catalogue-sidebar-nav" aria-label="Product categories">
+      <h3 class="category-sidebar-heading">Categories</h3>
+      <nav class="category-nav-list" aria-label="Category list"></nav>
+    </aside>
+
+    <main class="catalogue-main">
+      <section class="catalogue-search-bar">
+        <div class="search-shell fade-in">
+          <div class="search-container">
+            <input type="search" id="product-search" class="search-input" placeholder="Search furniture…" aria-label="Search products">
+            <span class="search-icon-btn" aria-hidden="true">
+              <svg viewBox="0 0 24 24" width="22" height="22" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M10.5 18a7.5 7.5 0 1 1 0-15 7.5 7.5 0 0 1 0 15Zm0-2a5.5 5.5 0 1 0 0-11 5.5 5.5 0 0 0 0 11Z" fill="currentColor"/>
+                <path d="m15.7 15.7 4.6 4.6" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+              </svg>
+            </span>
+          </div>
+        </div>
+      </section>
+
+      <div id="catalogue-loader" class="catalogue-loader">
+        <div class="spinner"></div> Loading products...
       </div>
-    </div>
-  </section>
-
-  <nav class="catalogue-nav">
-    <div class="container" style="display: flex; flex-wrap: wrap; justify-content: center; gap: 0.75rem;"></div>
-  </nav>
-
-  <div id="catalogue-loader" class="catalogue-loader">
-    <div class="spinner"></div> Loading products...
+      <div id="catalogue-container"></div>
+    </main>
   </div>
-  <div id="catalogue-container"></div>
 
   <footer class="footer">
     <div class="container">
