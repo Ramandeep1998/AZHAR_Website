@@ -1,0 +1,12 @@
+﻿RESULT: FAILED - GitHub CLI (gh) is not installed / not available on PATH.
+
+gh auth status: could not run — 'gh' is not recognized as a cmdlet or program.
+Checked common install locations; gh.exe was not found.
+
+No GitHub repository was created.
+No remote was added.
+No push was performed.
+No repository URL is available (do not invent one).
+
+Optional local listener check:
+- Port 8080 is LISTENING on 0.0.0.0 (PID 17504) — may be serving a local site.

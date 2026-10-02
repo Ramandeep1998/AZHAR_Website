@@ -25,6 +25,43 @@ const DEFAULT_CATEGORIES = [
 const MAX_IMAGE_DATA_URL_CHARS = 450000; // keep Firestore docs safely under 1MB
 const MAX_UPLOAD_FILE_BYTES = 8 * 1024 * 1024; // 8MB original file
 
+/* ---- Public read cache (session) — cuts repeat Firestore round-trips ---- */
+const CATALOGUE_CACHE_KEY = 'saifi_catalogue_v2';
+const SETTINGS_CACHE_KEY = 'saifi_settings_v1';
+const PUBLIC_CACHE_TTL_MS = 5 * 60 * 1000; // 5 minutes
+let catalogueInflight = null;
+let settingsInflight = null;
+
+function readPublicCache(key) {
+  try {
+    const raw = sessionStorage.getItem(key);
+    if (!raw) return null;
+    const parsed = JSON.parse(raw);
+    if (!parsed || !parsed.t || (Date.now() - parsed.t) > PUBLIC_CACHE_TTL_MS) return null;
+    return parsed.data;
+  } catch (e) {
+    return null;
+  }
+}
+
+function writePublicCache(key, data) {
+  try {
+    sessionStorage.setItem(key, JSON.stringify({ t: Date.now(), data }));
+  } catch (e) {
+    // QuotaExceeded when products embed large base64 images — skip cache, keep live fetch
+    try { sessionStorage.removeItem(key); } catch (_) { /* ignore */ }
+  }
+}
+
+function invalidatePublicCaches() {
+  try {
+    sessionStorage.removeItem(CATALOGUE_CACHE_KEY);
+    sessionStorage.removeItem(SETTINGS_CACHE_KEY);
+  } catch (e) { /* ignore */ }
+  catalogueInflight = null;
+  settingsInflight = null;
+}
+
 function initFirebase() {
   if (typeof FIREBASE_ENABLED === 'undefined' || !FIREBASE_ENABLED) return false;
   if (typeof firebase === 'undefined') return false;
@@ -162,6 +199,7 @@ async function ensureDefaultCategories() {
 }
 
 async function saveCategory(category) {
+  // invalidate happens after successful write below
   if (!isFirebaseReady()) throw new Error('Firebase not configured');
   requireAuth();
   const id = String(category.id || '').trim();
@@ -172,6 +210,7 @@ async function saveCategory(category) {
     order: Number(category.order) || 0,
     updatedAt: firebase.firestore.FieldValue.serverTimestamp()
   }, { merge: true });
+  invalidatePublicCaches();
 }
 
 async function deleteCategory(id) {
@@ -182,6 +221,7 @@ async function deleteCategory(id) {
     throw new Error('Cannot delete category with products. Move or delete products first.');
   }
   await db.collection('categories').doc(id).delete();
+  invalidatePublicCaches();
 }
 
 /* ---- Products ---- */
@@ -253,11 +293,13 @@ async function saveProduct(product) {
       id = ref.id;
     }
 
-    // Verify the write landed in Firestore
+    // Verify the write landed in Firestore (admin reliability)
     const check = await db.collection('products').doc(id).get();
     if (!check.exists) {
       throw new Error('Save did not appear in Firestore. Check rules and try again.');
     }
+
+    invalidatePublicCaches();
     return id;
   } catch (err) {
     console.error('saveProduct failed:', err);
@@ -269,6 +311,7 @@ async function deleteProduct(id) {
   if (!isFirebaseReady()) throw new Error('Firebase not configured');
   requireAuth();
   await db.collection('products').doc(id).delete();
+  invalidatePublicCaches();
 }
 
 /* ---- Images ---- */
@@ -451,8 +494,28 @@ function mapProductForCatalogue(p) {
  * Public website catalogue — reads Firestore only.
  * Never falls back to local demo data (that would hide missing Firebase saves).
  * UI / CSS changes cannot wipe Firestore; only authenticated admin delete can.
+ * Uses a short session cache + parallel category/product fetches for speed.
  */
 async function getCatalogueData() {
+  const cached = readPublicCache(CATALOGUE_CACHE_KEY);
+  if (cached) {
+    window.__SAIFI_CATALOGUE_ERROR = null;
+    // Refresh in background so the next navigation stays fresh
+    if (!catalogueInflight) {
+      catalogueInflight = fetchCatalogueFresh()
+        .catch(err => console.warn('catalogue background refresh', err))
+        .finally(() => { catalogueInflight = null; });
+    }
+    return cached;
+  }
+
+  if (catalogueInflight) return catalogueInflight;
+
+  catalogueInflight = fetchCatalogueFresh().finally(() => { catalogueInflight = null; });
+  return catalogueInflight;
+}
+
+async function fetchCatalogueFresh() {
   try {
     if (typeof initFirebase === 'function') initFirebase();
     if (!isFirebaseReady()) {
@@ -465,20 +528,16 @@ async function getCatalogueData() {
     let productsRaw = [];
 
     try {
-      const snap = await db.collection('categories').get();
-      categories = snap.docs
+      const [catSnap, products] = await Promise.all([
+        db.collection('categories').get(),
+        getProducts()
+      ]);
+      categories = catSnap.docs
         .map(d => ({ id: d.id, ...d.data() }))
         .sort((a, b) => (Number(a.order) || 0) - (Number(b.order) || 0));
+      productsRaw = products;
     } catch (err) {
-      console.error('getCategories (public):', err);
-      window.__SAIFI_CATALOGUE_ERROR = firebaseErrorMessage(err);
-      return [];
-    }
-
-    try {
-      productsRaw = await getProducts();
-    } catch (err) {
-      console.error('getProducts (public):', err);
+      console.error('catalogue fetch (public):', err);
       let msg = firebaseErrorMessage(err);
       if (/permission|insufficient|unauth/i.test(String(err.message || err.code || ''))) {
         msg =
@@ -510,7 +569,7 @@ async function getCatalogueData() {
     }
 
     // Include every Firestore category (empty ones show “No product under this category”)
-    return allCats.map(cat => {
+    const result = allCats.map(cat => {
       const catProducts = cat.id === '_other'
         ? orphanProducts
         : products.filter(p => p.categoryId === cat.id);
@@ -532,6 +591,9 @@ async function getCatalogueData() {
         }))
       };
     });
+
+    writePublicCache(CATALOGUE_CACHE_KEY, result);
+    return result;
   } catch (err) {
     console.error('getCatalogueData failed:', err);
     window.__SAIFI_CATALOGUE_ERROR = err.message || String(err);
@@ -542,18 +604,36 @@ async function getCatalogueData() {
 /* ---- Settings ---- */
 async function getSiteSettings() {
   const defaults = typeof SITE_CONFIG !== 'undefined' ? { ...SITE_CONFIG } : {};
-  if (!isFirebaseReady()) return defaults;
+  const cached = readPublicCache(SETTINGS_CACHE_KEY);
+  if (cached) {
+    if (!settingsInflight) {
+      settingsInflight = fetchSiteSettingsFresh(defaults)
+        .catch(err => console.warn('settings background refresh', err))
+        .finally(() => { settingsInflight = null; });
+    }
+    return { ...defaults, ...cached };
+  }
+
+  if (settingsInflight) return settingsInflight;
+  settingsInflight = fetchSiteSettingsFresh(defaults).finally(() => { settingsInflight = null; });
+  return settingsInflight;
+}
+
+async function fetchSiteSettingsFresh(defaults) {
+  const base = defaults || (typeof SITE_CONFIG !== 'undefined' ? { ...SITE_CONFIG } : {});
+  if (!isFirebaseReady()) return base;
   try {
     const doc = await db.collection('settings').doc('contact').get();
-    if (!doc.exists) return defaults;
-    const merged = { ...defaults };
+    if (!doc.exists) return base;
+    const merged = { ...base };
     Object.entries(doc.data() || {}).forEach(([k, v]) => {
       if (v !== '' && v != null) merged[k] = v;
     });
+    writePublicCache(SETTINGS_CACHE_KEY, merged);
     return merged;
   } catch (e) {
     console.warn('getSiteSettings failed:', e);
-    return defaults;
+    return base;
   }
 }
 
@@ -570,6 +650,7 @@ async function saveSiteSettings(settings) {
     web3formsKey: String(settings.web3formsKey || '').trim(),
     updatedAt: firebase.firestore.FieldValue.serverTimestamp()
   }, { merge: true });
+  invalidatePublicCaches();
 }
 
 /* ---- Enquiries ---- */

@@ -1,4 +1,4 @@
-/* SAIFI UDYOG — Admin Dashboard (production-hardened) */
+/* SAIFI FURNITURE UDYOG — Admin Dashboard (production-hardened) */
 
 let allProducts = [];
 let allCategories = [];
@@ -551,7 +551,7 @@ async function loadEnquiries() {
         ${e.product ? `<p class="enquiry-product">Product: <strong>${esc(e.product)}</strong></p>` : ''}
         <p class="enquiry-message">${esc(e.message)}</p>
         <div class="enquiry-actions">
-          <a href="https://wa.me/${e.mobile.replace(/\D/g, '')}?text=${encodeURIComponent('Hello ' + e.name + ', thank you for your enquiry at SAIFI UDYOG.')}" target="_blank" class="admin-btn admin-btn-outline admin-btn-sm">Reply on WhatsApp</a>
+          <a href="https://wa.me/${e.mobile.replace(/\D/g, '')}?text=${encodeURIComponent('Hello ' + e.name + ', thank you for your enquiry at SAIFI FURNITURE UDYOG.')}" target="_blank" class="admin-btn admin-btn-outline admin-btn-sm">Reply on WhatsApp</a>
           ${e.email ? `<a href="mailto:${e.email}" class="admin-btn admin-btn-outline admin-btn-sm">Send Email</a>` : ''}
           <button class="admin-btn admin-btn-outline admin-btn-sm" onclick="markRead('${e.id}')">Mark Read</button>
           <button class="admin-btn admin-btn-danger admin-btn-sm" onclick="deleteEnq('${e.id}')">Delete</button>
