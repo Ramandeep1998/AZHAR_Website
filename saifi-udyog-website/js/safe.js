@@ -1,5 +1,5 @@
 /**
- * SAIFI UDYOG — Safe helpers (prevent crashes)
+ * SAIFI FURNITURE UDYOG — Safe helpers (prevent crashes)
  */
 (function (global) {
   const PLACEHOLDER_IMAGE =
@@ -7,7 +7,7 @@
     encodeURIComponent(
       '<svg xmlns="http://www.w3.org/2000/svg" width="800" height="600" viewBox="0 0 800 600">' +
         '<rect fill="#e8dfd3" width="800" height="600"/>' +
-        '<text x="400" y="300" text-anchor="middle" fill="#8b6f47" font-family="Arial,sans-serif" font-size="28">SAIFI UDYOG</text>' +
+        '<text x="400" y="300" text-anchor="middle" fill="#8b6f47" font-family="Arial,sans-serif" font-size="28">SAIFI FURNITURE UDYOG</text>' +
         "</svg>"
     );
 
@@ -26,7 +26,25 @@
       .replace(/'/g, "&#39;");
   }
 
-  /** Only allow http(s) or data:image — blocks javascript: etc */
+  /**
+   * Escape for HTML attribute values. Do NOT entity-encode & inside data: URLs —
+   * that corrupts base64/SVG payloads. Only quote-escape.
+   */
+  function escapeAttr(str) {
+    if (!str) return "";
+    return String(str).replace(/&/g, "&amp;").replace(/"/g, "&quot;");
+  }
+
+  function escapeAttrSrc(url) {
+    const value = safeString(url);
+    if (value.toLowerCase().startsWith("data:")) {
+      // Quotes only — ampersands in data URLs must stay literal
+      return value.replace(/"/g, "&quot;");
+    }
+    return escapeAttr(value);
+  }
+
+  /** Only allow http(s), root-relative, or data:image — blocks javascript: etc */
   function safeImageUrl(url) {
     const value = safeString(url).trim();
     if (!value) return PLACEHOLDER_IMAGE;
@@ -34,9 +52,9 @@
     if (
       lower.startsWith("https://") ||
       lower.startsWith("http://") ||
-      lower.startsWith("data:image/")
+      lower.startsWith("data:image/") ||
+      lower.startsWith("/") // site-relative e.g. /images/hero-home.jpg
     ) {
-      // Cap huge data URLs from blowing up the DOM
       if (lower.startsWith("data:image/") && value.length > 950000) {
         return PLACEHOLDER_IMAGE;
       }
@@ -46,9 +64,11 @@
   }
 
   function imgTag(src, alt, extraClass) {
-    const safeSrc = escapeHtml(safeImageUrl(src));
+    const resolved = safeImageUrl(src);
+    const safeSrc = escapeAttrSrc(resolved);
     const safeAlt = escapeHtml(safeString(alt, "Product"));
     const cls = extraClass ? ' class="' + escapeHtml(extraClass) + '"' : "";
+    // onerror uses SAIFI_SAFE at runtime — never embed the giant data-URL in the attribute
     return (
       "<img" +
       cls +
@@ -56,9 +76,7 @@
       safeSrc +
       '" alt="' +
       safeAlt +
-      '" loading="lazy" onerror="this.onerror=null;this.src=\'' +
-      PLACEHOLDER_IMAGE +
-      "';\">"
+      '" loading="eager" decoding="async" onerror="this.onerror=null;this.src=(window.SAIFI_SAFE&amp;&amp;SAIFI_SAFE.PLACEHOLDER_IMAGE)||\'\';">'
     );
   }
 
@@ -84,6 +102,8 @@
     PLACEHOLDER_IMAGE,
     safeString,
     escapeHtml,
+    escapeAttr,
+    escapeAttrSrc,
     safeImageUrl,
     imgTag,
     safeAsync,

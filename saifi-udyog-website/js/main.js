@@ -1,4 +1,4 @@
-/* SAIFI UDYOG — Main JavaScript (crash-safe boot) */
+/* SAIFI FURNITURE UDYOG — Main JavaScript (crash-safe boot) */
 
 document.addEventListener('DOMContentLoaded', async () => {
   if (window.SAIFI_SAFE) SAIFI_SAFE.bindGlobalErrorHandlers();
@@ -6,7 +6,11 @@ document.addEventListener('DOMContentLoaded', async () => {
   // Prefill must not wait on Firebase — otherwise Enquire Now arrives with an empty form
   try { prefillEnquiryFromUrl(); } catch (e) { console.warn('prefillEnquiryFromUrl', e); }
 
-  try { await initSiteConfig(); } catch (e) { console.warn('initSiteConfig', e); }
+  // Paint contact defaults immediately, then refresh from cloud in parallel with catalogue
+  try {
+    if (typeof SITE_CONFIG !== 'undefined') applySiteConfig({ ...SITE_CONFIG });
+  } catch (e) { console.warn('applySiteConfig defaults', e); }
+
   try { initHeader(); } catch (e) { console.warn('initHeader', e); }
   try { initMobileNav(); } catch (e) { console.warn('initMobileNav', e); }
   try { initScrollAnimations(); } catch (e) { console.warn('initScrollAnimations', e); }
@@ -15,7 +19,11 @@ document.addEventListener('DOMContentLoaded', async () => {
   try { initWhatsAppFloat(); } catch (e) { console.warn('initWhatsAppFloat', e); }
   try { initBackToTop(); } catch (e) { console.warn('initBackToTop', e); }
   try { initProductLightbox(); } catch (e) { console.warn('initProductLightbox', e); }
-  try { await initHomeCatalogue(); } catch (e) { console.warn('initHomeCatalogue', e); }
+
+  await Promise.all([
+    initSiteConfig().catch(e => console.warn('initSiteConfig', e)),
+    initHomeCatalogue().catch(e => console.warn('initHomeCatalogue', e))
+  ]);
 });
 
 /* ---- Home: live products only (no sample / Unsplash filler) ---- */
@@ -33,8 +41,6 @@ async function initHomeCatalogue() {
 
   const loading = document.getElementById('home-catalogue-loading');
   const intro = document.getElementById('home-products-intro');
-  const heroImg = document.getElementById('home-hero-image');
-  const heroBg = document.getElementById('home-hero-bg');
 
   try {
     if (typeof initFirebase === 'function') initFirebase();
@@ -42,20 +48,33 @@ async function initHomeCatalogue() {
       ? await getCatalogueData()
       : [];
 
-    const categories = Array.isArray(data) ? data : [];
-    const firstImage = categories
-      .flatMap(c => (c.subcategories || []).flatMap(s => s.products || []))
-      .map(p => p.image)
-      .find(src => src && !String(src).includes('unsplash.com'));
+    const allCategories = Array.isArray(data) ? data : [];
+    // Home hero uses static /images/hero-home.jpg (set in index.html)
 
-    if (firstImage && heroImg && heroBg) {
-      const safe = window.SAIFI_SAFE ? SAIFI_SAFE.safeImageUrl(firstImage) : firstImage;
-      heroImg.src = safe;
-      heroImg.alt = 'SAIFI UDYOG furniture';
-      heroImg.hidden = false;
-      heroImg.removeAttribute('hidden');
-      heroBg.classList.add('has-photo');
+    function categoryProductCount(cat) {
+      return (cat.subcategories || []).reduce(
+        (n, s) => n + ((s.products && s.products.length) || 0), 0
+      );
     }
+
+    function categoryFirstImage(cat) {
+      const first = (cat.subcategories || [])
+        .flatMap(s => s.products || [])
+        .find(p => p && p.image);
+      return first && first.image
+        ? (window.SAIFI_SAFE ? SAIFI_SAFE.safeImageUrl(first.image) : first.image)
+        : '';
+    }
+
+    // Public site: only show categories that have products (hide "No products yet")
+    // Keep Custom Furniture as an enquire card even when empty
+    // Preserve Firebase/admin category order — do not re-sort
+    const categories = allCategories.filter(cat => {
+      if (!cat || cat.id === '_other') return false;
+      const count = categoryProductCount(cat);
+      if (count > 0) return true;
+      return cat.id === 'custom-furniture';
+    });
 
     if (!categories.length) {
       if (window.__SAIFI_CATALOGUE_ERROR) {
@@ -74,38 +93,39 @@ async function initHomeCatalogue() {
       grid.innerHTML = `
         <div class="home-empty-catalogue fade-in visible">
           <h3>Catalogue updating</h3>
-          <p>No products are listed yet. Reach out and we’ll share the latest range.</p>
+          <p>Reach out and we’ll share the latest range.</p>
           <a href="contact.html" class="btn btn-wood">Contact Us</a>
         </div>`;
       return;
     }
 
     if (intro) {
-      intro.textContent = 'Explore furniture crafted for comfort, style and durability.';
+      intro.textContent = 'Furniture designed for everyday living and lasting spaces.';
     }
 
-    grid.innerHTML = categories.map(cat => {
-      const first = (cat.subcategories || [])
-        .flatMap(s => s.products || [])
-        .find(p => p && p.image);
-      const img = first && first.image
-        ? (window.SAIFI_SAFE ? SAIFI_SAFE.safeImageUrl(first.image) : first.image)
-        : '';
-      const count = (cat.subcategories || []).reduce(
-        (n, s) => n + ((s.products && s.products.length) || 0), 0
-      );
+    grid.innerHTML = categories.map((cat, index) => {
+      const img = categoryFirstImage(cat);
+      const count = categoryProductCount(cat);
+      const isCustomEmpty = cat.id === 'custom-furniture' && count === 0;
+      const href = isCustomEmpty
+        ? 'contact.html?product=Custom%20Furniture'
+        : `products.html#${escapeHomeHtml(cat.id || '')}`;
+      const cta = isCustomEmpty ? 'Enquire' : 'Explore collection';
+      const sizeClass = index === 0
+        ? ' category-card--feature'
+        : (index === 3 || index === 6 ? ' category-card--wide' : '');
+      const imgSrc = window.SAIFI_SAFE
+        ? SAIFI_SAFE.escapeAttrSrc(img)
+        : escapeHomeHtml(img);
       const imgHtml = img
-        ? `<img src="${escapeHomeHtml(img)}" alt="${escapeHomeHtml(cat.title || '')}" loading="lazy">`
+        ? `<img src="${imgSrc}" alt="${escapeHomeHtml(cat.title || '')}" loading="eager" decoding="async">`
         : `<div class="category-card-placeholder"></div>`;
-      const countLabel = count === 0
-        ? 'No products yet'
-        : `${count} product${count === 1 ? '' : 's'}`;
 
-      return `<a href="products.html#${escapeHomeHtml(cat.id || '')}" class="category-card fade-in">
+      return `<a href="${href}" class="category-card${sizeClass} fade-in visible">
         ${imgHtml}
-        <div class="category-card-overlay">
+        <div class="category-card-overlay category-content">
           <h3>${escapeHomeHtml(cat.title || '')}</h3>
-          <span class="category-card-count">${countLabel}</span>
+          <span class="category-card-count">${cta}</span>
         </div>
       </a>`;
     }).join('');
@@ -124,15 +144,8 @@ async function initHomeCatalogue() {
 }
 
 /* ---- Site Config (contact info from Firebase cloud) ---- */
-async function initSiteConfig() {
-  if (typeof SITE_CONFIG === 'undefined') return;
-
-  let config = { ...SITE_CONFIG };
-  if (typeof getSiteSettings === 'function') {
-    try {
-      config = await getSiteSettings();
-    } catch (e) { /* use defaults */ }
-  }
+function applySiteConfig(config) {
+  if (!config) return;
   window.SITE_RUNTIME_CONFIG = config;
 
   document.querySelectorAll('[data-contact]').forEach(el => {
@@ -158,10 +171,35 @@ async function initSiteConfig() {
   }
 
   const mapContainer = document.getElementById('map-container');
-  if (mapContainer && config.mapsEmbedUrl) {
-    mapContainer.innerHTML = `<iframe src="${config.mapsEmbedUrl}" width="100%" height="100%" style="border:0;" allowfullscreen loading="lazy" referrerpolicy="no-referrer-when-downgrade" title="SAIFI UDYOG location"></iframe>`;
-    mapContainer.classList.remove('map-placeholder');
+  if (mapContainer) {
+    let embed = String(config.mapsEmbedUrl || '').trim();
+    if (!embed && config.address) {
+      embed = `https://www.google.com/maps?q=${encodeURIComponent(config.address)}&output=embed`;
+    }
+    // Allow Google Maps embed URLs (incl. google.com/maps and maps.google.com)
+    if (embed && /^https:\/\/(www\.)?(google\.[^/]+\/maps|maps\.google\.[^/]+)/i.test(embed)) {
+      const safeEmbed = window.SAIFI_SAFE ? SAIFI_SAFE.escapeAttrSrc(embed) : embed.replace(/"/g, '&quot;');
+      const existing = mapContainer.querySelector('iframe');
+      if (existing) {
+        existing.src = embed;
+      } else {
+        mapContainer.innerHTML = `<iframe src="${safeEmbed}" width="100%" height="100%" style="border:0;" allowfullscreen loading="lazy" referrerpolicy="no-referrer-when-downgrade" title="SAIFI FURNITURE UDYOG location"></iframe>`;
+      }
+      mapContainer.classList.remove('map-placeholder');
+    }
   }
+}
+
+async function initSiteConfig() {
+  if (typeof SITE_CONFIG === 'undefined') return;
+
+  let config = { ...SITE_CONFIG };
+  if (typeof getSiteSettings === 'function') {
+    try {
+      config = await getSiteSettings();
+    } catch (e) { /* use defaults */ }
+  }
+  applySiteConfig(config);
 }
 
 /* ---- Sticky Header ---- */
@@ -169,9 +207,17 @@ function initHeader() {
   const header = document.querySelector('.header');
   if (!header) return;
 
-  window.addEventListener('scroll', () => {
-    header.classList.toggle('scrolled', window.scrollY > 40);
-  });
+  let ticking = false;
+  const onScroll = () => {
+    if (ticking) return;
+    ticking = true;
+    requestAnimationFrame(() => {
+      header.classList.toggle('scrolled', window.scrollY > 40);
+      ticking = false;
+    });
+  };
+
+  window.addEventListener('scroll', onScroll, { passive: true });
 }
 
 /* ---- Mobile Navigation ---- */
@@ -180,18 +226,47 @@ function initMobileNav() {
   const toggle = document.querySelector('.nav-toggle');
   if (!nav || !toggle) return;
 
-  toggle.addEventListener('click', () => {
-    nav.classList.toggle('open');
-    toggle.classList.toggle('active');
-    document.body.classList.toggle('nav-open', nav.classList.contains('open'));
+  const setOpen = (open) => {
+    nav.classList.toggle('open', open);
+    toggle.classList.toggle('active', open);
+    document.body.classList.toggle('nav-open', open);
+    toggle.setAttribute('aria-expanded', open ? 'true' : 'false');
+  };
+
+  const closeNav = () => setOpen(false);
+
+  toggle.setAttribute('aria-expanded', 'false');
+  toggle.setAttribute('aria-controls', 'site-nav-links');
+  const links = nav.querySelector('.nav-links');
+  if (links && !links.id) links.id = 'site-nav-links';
+
+  toggle.addEventListener('click', (e) => {
+    e.stopPropagation();
+    setOpen(!nav.classList.contains('open'));
   });
 
-  document.querySelectorAll('.nav-links a').forEach(link => {
-    link.addEventListener('click', () => {
-      nav.classList.remove('open');
-      toggle.classList.remove('active');
-      document.body.classList.remove('nav-open');
-    });
+  nav.querySelectorAll('.nav-links a, .btn-sm').forEach(link => {
+    link.addEventListener('click', closeNav);
+  });
+
+  // Backdrop (::before) clicks land on .nav itself
+  nav.addEventListener('click', (e) => {
+    if (e.target === nav) closeNav();
+  });
+
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') closeNav();
+  });
+
+  // Close drawer when resizing up to desktop / rotating to wide landscape
+  window.addEventListener('resize', () => {
+    if (window.innerWidth > 768) closeNav();
+  }, { passive: true });
+
+  window.addEventListener('orientationchange', () => {
+    setTimeout(() => {
+      if (window.innerWidth > 768) closeNav();
+    }, 120);
   });
 }
 
@@ -200,19 +275,36 @@ function initScrollAnimations() {
   const elements = document.querySelectorAll('.fade-in:not(.visible)');
   if (!elements.length) return;
 
+  const reveal = (el) => el.classList.add('visible');
+
+  if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+    elements.forEach(reveal);
+    return;
+  }
+
+  if (!('IntersectionObserver' in window)) {
+    elements.forEach(reveal);
+    return;
+  }
+
   const observer = new IntersectionObserver(
     (entries) => {
       entries.forEach(entry => {
         if (entry.isIntersecting) {
-          entry.target.classList.add('visible');
+          reveal(entry.target);
           observer.unobserve(entry.target);
         }
       });
     },
-    { threshold: 0.12, rootMargin: '0px 0px -40px 0px' }
+    { threshold: 0.01, rootMargin: '80px 0px 80px 0px' }
   );
 
-  elements.forEach(el => observer.observe(el));
+  elements.forEach(el => {
+    const rect = el.getBoundingClientRect();
+    const inView = rect.top < window.innerHeight + 80 && rect.bottom > -80;
+    if (inView) reveal(el);
+    else observer.observe(el);
+  });
 }
 
 /* ---- Catalogue Category Navigation ---- */
@@ -298,7 +390,7 @@ function initContactForm() {
       if (cfg.web3formsKey) {
         const fd = new FormData();
         fd.append('access_key', cfg.web3formsKey);
-        fd.append('subject', `New Enquiry from ${name} — SAIFI UDYOG`);
+        fd.append('subject', `New Enquiry from ${name} — SAIFI FURNITURE UDYOG`);
         fd.append('from_name', name);
         fd.append('email', email || 'no-reply@saifiudyog.com');
         fd.append('message', formatEnquiryText(enquiry));
@@ -370,7 +462,7 @@ function initContactForm() {
 
 function formatEnquiryText(data, forWhatsApp) {
   const lines = [
-    forWhatsApp ? '*New Furniture Enquiry — SAIFI UDYOG*' : 'New Furniture Enquiry — SAIFI UDYOG',
+    forWhatsApp ? '*New Furniture Enquiry — SAIFI FURNITURE UDYOG*' : 'New Furniture Enquiry — SAIFI FURNITURE UDYOG',
     '',
     `Name: ${data.name}`,
     `Mobile: ${data.mobile}`,

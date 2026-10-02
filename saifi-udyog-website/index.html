@@ -3,26 +3,25 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="description" content="SAIFI UDYOG — Quality furniture solutions for homes, offices and commercial spaces.">
-  <title>SAIFI UDYOG | Furniture That Fits Your Space</title>
-  <link rel="icon" href="favicon.svg" type="image/svg+xml">
+  <meta name="description" content="SAIFI FURNITURE UDYOG — Quality furniture solutions for homes, offices and commercial spaces.">
+  <title>SAIFI FURNITURE UDYOG | Furniture That Fits Your Space</title>
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400&family=Outfit:wght@300;400;500;600&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="css/styles.css">
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400;1,500&family=Figtree:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/css/styles.css">
 </head>
 <body>
 
   <!-- Header -->
   <header class="header">
     <div class="container">
-      <a href="index.html" class="logo">SAIFI <span>UDYOG</span></a>
+      <a href="index.html" class="logo">SAIFI FURNITURE <span>UDYOG</span></a>
       <nav class="nav">
         <ul class="nav-links">
           <li><a href="index.html" class="active">Home</a></li>
           <li><a href="products.html">Products</a></li>
           <li><a href="about.html">About Us</a></li>
-          <li><a href="contact.html">Contact</a></li>
         </ul>
         <a href="contact.html" class="btn btn-primary btn-sm">Contact Us</a>
         <button class="nav-toggle" aria-label="Toggle navigation">
@@ -34,15 +33,16 @@
 
   <!-- Hero -->
   <section class="hero">
-    <div class="hero-bg hero-bg--brand" id="home-hero-bg" aria-hidden="true">
-      <img id="home-hero-image" src="" alt="" hidden>
+    <div class="hero-bg hero-bg--brand has-photo" id="home-hero-bg" aria-hidden="true">
+      <img id="home-hero-image" src="/images/hero-home.jpg" alt="SAIFI FURNITURE UDYOG showroom">
       <div class="hero-overlay"></div>
     </div>
     <div class="hero-content">
-      <h1>SAIFI UDYOG</h1>
-      <p class="hero-tagline">Furniture That Fits Your Space</p>
-      <p class="hero-sub">Quality furniture solutions for homes, offices and commercial spaces.</p>
-      <div class="btn-group" style="justify-content: center;">
+      <p class="hero-eyebrow">Furniture Manufacturer</p>
+      <h1>SAIFI FURNITURE <span>UDYOG</span></h1>
+      <p class="hero-tagline">Furniture crafted for spaces that matter.</p>
+      <p class="hero-sub">Quality pieces for homes, offices and commercial spaces — designed to last, finished to impress.</p>
+      <div class="btn-group">
         <a href="products.html" class="btn btn-primary">Explore Products</a>
         <a href="contact.html" class="btn btn-outline">Contact Us</a>
       </div>
@@ -52,9 +52,11 @@
   <!-- Our Products (filled from live admin data only) -->
   <section class="section" id="home-products-section">
     <div class="container">
-      <div class="section-header fade-in">
-        <p class="section-label">Catalogue</p>
-        <h2>Our Products</h2>
+      <div class="categories-header fade-in">
+        <div>
+          <p class="section-label">Catalogue</p>
+          <h2>Our Products</h2>
+        </div>
         <p id="home-products-intro">Explore furniture crafted for comfort, style and durability.</p>
       </div>
       <div class="category-grid" id="home-category-grid">
@@ -64,16 +66,16 @@
   </section>
 
   <!-- About Preview -->
-  <section class="section" style="background-color: var(--color-white);">
+  <section class="section section--about-preview">
     <div class="container">
       <div class="about-preview fade-in about-preview--text">
         <div class="about-preview-panel" aria-hidden="true">
-          <span>SAIFI UDYOG</span>
+          <span>SAIFI FURNITURE UDYOG</span>
         </div>
         <div class="about-preview-content">
           <p class="section-label">Who We Are</p>
-          <h2>About SAIFI UDYOG</h2>
-          <p>SAIFI UDYOG is a furniture manufacturer dedicated to creating quality pieces for homes, offices and commercial spaces. From elegant sofas to functional office workstations, we craft furniture that combines comfort, durability and timeless design.</p>
+          <h2>About SAIFI FURNITURE UDYOG</h2>
+          <p>SAIFI FURNITURE UDYOG is a furniture manufacturer dedicated to creating quality pieces for homes, offices and commercial spaces. From elegant sofas to functional office workstations, we craft furniture that combines comfort, durability and timeless design.</p>
           <a href="about.html" class="btn btn-wood">Know More</a>
         </div>
       </div>
@@ -131,7 +133,7 @@
     <div class="container">
       <div class="footer-grid">
         <div class="footer-brand">
-          <a href="index.html" class="logo">SAIFI <span>UDYOG</span></a>
+          <a href="index.html" class="logo">SAIFI FURNITURE <span>UDYOG</span></a>
           <p>Furniture for Homes, Offices &amp; Commercial Spaces</p>
         </div>
         <div>
@@ -154,17 +156,17 @@
         </div>
       </div>
       <div class="footer-bottom">
-        <p>&copy; SAIFI UDYOG. All Rights Reserved.</p>
+        <p>&copy; SAIFI FURNITURE UDYOG. All Rights Reserved.</p>
       </div>
     </div>
   </footer>
 
   <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore-compat.js"></script>
-  <script src="js/safe.js"></script>
-  <script src="js/config.js"></script>
-  <script src="js/firebase-config.js"></script>
-  <script src="js/db.js"></script>
-  <script src="js/main.js"></script>
+  <script src="/js/safe.js"></script>
+  <script src="/js/config.js"></script>
+  <script src="/js/firebase-config.js"></script>
+  <script src="/js/db.js"></script>
+  <script src="/js/main.js"></script>
 </body>
 </html>

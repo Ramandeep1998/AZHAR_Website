@@ -67,6 +67,7 @@ function renderCatalogue(filter) {
     let hasAnySection = false;
     let hasProductMatch = false;
     const categories = Array.isArray(catalogueData) ? catalogueData : [];
+    const navCats = [];
 
     if (!categories.length) {
       container.innerHTML = emptyCatalogueHtml(Boolean(query));
@@ -97,12 +98,15 @@ function renderCatalogue(filter) {
           const name = product.name || 'Product';
           const image = product.image || '';
           const enquireUrl = `contact.html?product=${encodeURIComponent(name)}`;
+          const safeImg = window.SAIFI_SAFE
+            ? SAIFI_SAFE.safeImageUrl(image)
+            : (image || '');
           const safeImgAttr = window.SAIFI_SAFE
-            ? SAIFI_SAFE.escapeHtml(SAIFI_SAFE.safeImageUrl(image))
-            : escapeHtml(image);
+            ? SAIFI_SAFE.escapeAttrSrc(safeImg)
+            : escapeHtml(safeImg);
 
           categoryHtml += `
-            <div class="product-card fade-in">
+            <div class="product-card fade-in visible">
               <div class="product-image lightbox-trigger" data-src="${safeImgAttr}" data-alt="${escapeHtml(name)}">
                 ${productImageHtml(image, name)}
                 <span class="product-zoom-hint">View</span>
@@ -117,16 +121,11 @@ function renderCatalogue(filter) {
         categoryHtml += '</div>';
       });
 
-      // While searching, hide categories with no matches
-      if (query && !categoryHasProducts) return;
+      // Hide empty categories on the public catalogue (no "No product under this category")
+      if (!categoryHasProducts) return;
 
       hasAnySection = true;
-      if (!categoryHasProducts) {
-        categoryHtml = `<div class="category-empty fade-in visible">
-          <p><strong>No product under this category</strong></p>
-          <p><a href="contact.html">Contact us</a> to ask about availability.</p>
-        </div>`;
-      }
+      if (category.id && category.id !== '_other') navCats.push(category);
 
       html += `
         <section id="${escapeHtml(category.id || '')}" class="catalogue-section">
@@ -148,7 +147,7 @@ function renderCatalogue(filter) {
     }
 
     container.innerHTML = html;
-    updateCatalogueNav(categories);
+    updateCatalogueNav(navCats);
     bindEnquireLinks(container);
     if (typeof initScrollAnimations === 'function') initScrollAnimations();
     if (typeof initProductLightbox === 'function') initProductLightbox();
@@ -237,6 +236,18 @@ async function initCataloguePage() {
     await loadCatalogueData();
     renderCatalogue();
     initCatalogueSearch();
+
+    // Honor deep links from home cards (products.html#category-id) after async render
+    const hash = window.location.hash;
+    if (hash && hash.length > 1) {
+      const target = document.querySelector(hash);
+      if (target) {
+        const header = document.querySelector('.header');
+        const offset = (header ? header.offsetHeight : 76) + 16;
+        const top = target.getBoundingClientRect().top + window.scrollY - offset;
+        window.scrollTo({ top, behavior: 'auto' });
+      }
+    }
   } catch (err) {
     console.error(err);
     const container = document.getElementById('catalogue-container');
