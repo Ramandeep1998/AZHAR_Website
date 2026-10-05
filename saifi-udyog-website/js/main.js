@@ -48,33 +48,44 @@ async function initHomeCatalogue() {
       ? await getCatalogueData()
       : [];
 
-    const allCategories = Array.isArray(data) ? data : [];
-    // Home hero uses static /images/hero-home.jpg (set in index.html)
-
-    function categoryProductCount(cat) {
-      return (cat.subcategories || []).reduce(
-        (n, s) => n + ((s.products && s.products.length) || 0), 0
+    const live = Array.isArray(data) ? data : [];
+    const defaults = (typeof DEFAULT_CATEGORIES !== 'undefined' && Array.isArray(DEFAULT_CATEGORIES))
+      ? DEFAULT_CATEGORIES
+      : [];
+    const byId = new Map(live.filter(c => c && c.id).map(c => [c.id, c]));
+    const categories = defaults.map(def => {
+      const liveCat = byId.get(def.id);
+      const liveSubs = (liveCat && liveCat.subcategories) || [];
+      const liveByName = new Map(
+        liveSubs
+          .filter(s => s && s.name)
+          .map(s => [String(s.name).toLowerCase(), s])
       );
-    }
+      return {
+        id: def.id,
+        title: def.title,
+        description: def.description || '',
+        subcategories: (def.subcategories || []).map(name => {
+          const liveSub = liveByName.get(String(name).toLowerCase());
+          return {
+            name,
+            products: (liveSub && liveSub.products) || []
+          };
+        })
+      };
+    });
 
     function categoryFirstImage(cat) {
       const first = (cat.subcategories || [])
         .flatMap(s => s.products || [])
         .find(p => p && p.image);
-      return first && first.image
-        ? (window.SAIFI_SAFE ? SAIFI_SAFE.safeImageUrl(first.image) : first.image)
-        : '';
+      if (first && first.image) {
+        return window.SAIFI_SAFE ? SAIFI_SAFE.safeImageUrl(first.image) : first.image;
+      }
+      return (typeof sampleImageForCategory === 'function')
+        ? sampleImageForCategory(cat.id)
+        : '/images/samples/table.svg';
     }
-
-    // Public site: only show categories that have products (hide "No products yet")
-    // Keep Custom Furniture as an enquire card even when empty
-    // Preserve Firebase/admin category order — do not re-sort
-    const categories = allCategories.filter(cat => {
-      if (!cat || cat.id === '_other') return false;
-      const count = categoryProductCount(cat);
-      if (count > 0) return true;
-      return cat.id === 'custom-furniture';
-    });
 
     if (!categories.length) {
       if (window.__SAIFI_CATALOGUE_ERROR) {
@@ -103,30 +114,19 @@ async function initHomeCatalogue() {
       intro.textContent = 'Furniture designed for everyday living and lasting spaces.';
     }
 
-    grid.innerHTML = categories.map((cat, index) => {
+    grid.innerHTML = categories.map((cat) => {
       const img = categoryFirstImage(cat);
-      const count = categoryProductCount(cat);
-      const isCustomEmpty = cat.id === 'custom-furniture' && count === 0;
-      const href = isCustomEmpty
-        ? 'contact.html?product=Custom%20Furniture'
-        : `products.html#${escapeHomeHtml(cat.id || '')}`;
-      const cta = isCustomEmpty ? 'Enquire' : 'Explore collection';
-      const sizeClass = index === 0
-        ? ' category-card--feature'
-        : (index === 3 || index === 6 ? ' category-card--wide' : '');
+      const href = `products.html#${escapeHomeHtml(cat.id || '')}`;
       const imgSrc = window.SAIFI_SAFE
         ? SAIFI_SAFE.escapeAttrSrc(img)
         : escapeHomeHtml(img);
       const imgHtml = img
         ? `<img src="${imgSrc}" alt="${escapeHomeHtml(cat.title || '')}" loading="eager" decoding="async">`
-        : `<div class="category-card-placeholder"></div>`;
+        : `<div class="subcat-tile-fallback" aria-hidden="true"></div>`;
 
-      return `<a href="${href}" class="category-card${sizeClass} fade-in visible">
-        ${imgHtml}
-        <div class="category-card-overlay category-content">
-          <h3>${escapeHomeHtml(cat.title || '')}</h3>
-          <span class="category-card-count">${cta}</span>
-        </div>
+      return `<a href="${href}" class="subcat-tile">
+        <span class="subcat-tile-photo">${imgHtml}</span>
+        <span class="subcat-tile-label">${escapeHomeHtml(cat.title || '')}</span>
       </a>`;
     }).join('');
 
@@ -316,14 +316,17 @@ function initCatalogueNav() {
 
   const headerOffset = () => {
     const header = document.querySelector('.header');
-    return (header ? header.offsetHeight : 80) + 16;
+    const bar = document.querySelector('.category-bar');
+    return (header ? header.offsetHeight : 80) + (bar ? bar.offsetHeight : 0) + 12;
   };
 
   navLinks.forEach(link => {
     link.addEventListener('click', (e) => {
-      e.preventDefault();
-      const target = document.querySelector(link.getAttribute('href'));
+      const href = link.getAttribute('href') || '';
+      const hash = href.includes('#') ? href.slice(href.indexOf('#')) : '';
+      const target = hash ? document.querySelector(hash) : null;
       if (target) {
+        e.preventDefault();
         const top = target.getBoundingClientRect().top + window.scrollY - headerOffset();
         window.scrollTo({ top, behavior: 'smooth' });
       }
@@ -338,7 +341,9 @@ function initCatalogueNav() {
         if (entry.isIntersecting) {
           const id = entry.target.getAttribute('id');
           navLinks.forEach(link => {
-            link.classList.toggle('active', link.getAttribute('href') === `#${id}`);
+            const href = link.getAttribute('href') || '';
+            const hash = href.includes('#') ? href.slice(href.indexOf('#')) : href;
+            link.classList.toggle('active', hash === `#${id}`);
           });
         }
       });

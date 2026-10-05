@@ -8,10 +8,14 @@ const DB_KEY = 'saifi_udyog_data';
 const AUTH_KEY = 'saifi_udyog_auth';
 
 const DEFAULT_CATEGORIES = [
-  { id: 'sofa-seating', title: 'Sofa & Seating', description: 'Comfortable and stylish seating solutions for living rooms and lounges.', order: 1 },
-  { id: 'office-furniture', title: 'Office Furniture', description: 'Functional and ergonomic furniture designed for productive workspaces.', order: 2 },
-  { id: 'home-furniture', title: 'Home Furniture', description: 'Beautiful furniture pieces to make every room in your home feel complete.', order: 3 },
-  { id: 'other-furniture', title: 'Other Furniture', description: 'Additional furniture solutions including storage, shelving and custom pieces.', order: 4 }
+  { id: 'home-furniture', title: 'Home Furniture', description: 'Beds, sofas and side tables for every room at home.', order: 1, subcategories: ['Bed', 'Sofa', 'Side tables'] },
+  { id: 'office-furniture', title: 'Office Furniture', description: 'Chairs, tables and counters for productive workspaces.', order: 2, subcategories: ['Chair', 'Table', 'Counter'] },
+  { id: 'pvc-furniture', title: 'PVC Furniture', description: 'Durable PVC chairs and tables for indoor and outdoor use.', order: 3, subcategories: ['Chair', 'Table'] },
+  { id: 'restaurant-furniture', title: 'Restaurant Furniture', description: 'Table tops and seating built for hospitality spaces.', order: 4, subcategories: ['Table Tops', 'Sofa chair'] },
+  { id: 'almirah', title: 'Almirah', description: 'Single-door and multi-door storage almirahs.', order: 5, subcategories: ['Single door', 'Multi door'] },
+  { id: 'tent-furniture', title: 'Tent Furniture', description: 'Chairs, tables and stage setups for tents and events.', order: 6, subcategories: ['Chair', 'Table', 'Stage'] },
+  { id: 'hospital', title: 'Hospital', description: 'Beds, tables and counters for healthcare spaces.', order: 7, subcategories: ['Bed', 'Table', 'Counter'] },
+  { id: 'school-furniture', title: 'School Furniture', description: 'Chairs, tables and desks for classrooms and campuses.', order: 8, subcategories: ['Chair', 'Table', 'Desk'] }
 ];
 
 function getStore() {

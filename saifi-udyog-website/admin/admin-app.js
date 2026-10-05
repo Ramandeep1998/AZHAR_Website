@@ -133,14 +133,14 @@ function closeAllModals() {
 }
 
 const FALLBACK_CATEGORIES = [
-  { id: 'sofas', title: 'Sofas', order: 1 },
-  { id: 'beds', title: 'Beds', order: 2 },
-  { id: 'chairs', title: 'Chairs', order: 3 },
-  { id: 'tables', title: 'Tables', order: 4 },
-  { id: 'office-furniture', title: 'Office Furniture', order: 5 },
-  { id: 'workstations', title: 'Workstations', order: 6 },
-  { id: 'cabinets', title: 'Cabinets', order: 7 },
-  { id: 'custom-furniture', title: 'Custom Furniture', order: 8 }
+  { id: 'home-furniture', title: 'Home Furniture', order: 1, subcategories: ['Bed', 'Sofa', 'Side tables'] },
+  { id: 'office-furniture', title: 'Office Furniture', order: 2, subcategories: ['Chair', 'Table', 'Counter'] },
+  { id: 'pvc-furniture', title: 'PVC Furniture', order: 3, subcategories: ['Chair', 'Table'] },
+  { id: 'restaurant-furniture', title: 'Restaurant Furniture', order: 4, subcategories: ['Table Tops', 'Sofa chair'] },
+  { id: 'almirah', title: 'Almirah', order: 5, subcategories: ['Single door', 'Multi door'] },
+  { id: 'tent-furniture', title: 'Tent Furniture', order: 6, subcategories: ['Chair', 'Table', 'Stage'] },
+  { id: 'hospital', title: 'Hospital', order: 7, subcategories: ['Bed', 'Table', 'Counter'] },
+  { id: 'school-furniture', title: 'School Furniture', order: 8, subcategories: ['Chair', 'Table', 'Desk'] }
 ];
 
 async function loadDashboard() {
@@ -233,6 +233,34 @@ function populateCategorySelect() {
   select.innerHTML = list.map(c =>
     `<option value="${c.id}">${esc(c.title)}</option>`
   ).join('');
+
+  if (!select.dataset.subSyncBound) {
+    select.addEventListener('change', () => populateSubcategorySelect());
+    select.dataset.subSyncBound = '1';
+  }
+  populateSubcategorySelect();
+}
+
+function populateSubcategorySelect(preferred) {
+  const catSelect = document.getElementById('product-category');
+  const subSelect = document.getElementById('product-subcategory');
+  if (!catSelect || !subSelect) return;
+
+  const list = (allCategories && allCategories.length)
+    ? allCategories
+    : FALLBACK_CATEGORIES;
+  const cat = list.find(c => c.id === catSelect.value) || list[0];
+  const subs = (cat && Array.isArray(cat.subcategories) && cat.subcategories.length)
+    ? cat.subcategories
+    : ['General'];
+
+  const keep = preferred || subSelect.value;
+  subSelect.innerHTML = subs.map(s =>
+    `<option value="${esc(s)}">${esc(s)}</option>`
+  ).join('');
+  if (keep && [...subSelect.options].some(o => o.value === keep)) {
+    subSelect.value = keep;
+  }
 }
 
 function openProductModal(product = null) {
@@ -254,8 +282,7 @@ function openProductModal(product = null) {
   populateCategorySelect();
   const preferred = product?.categoryId || allCategories[0]?.id || FALLBACK_CATEGORIES[0].id;
   document.getElementById('product-category').value = preferred;
-
-  document.getElementById('product-subcategory').value = product?.subcategory || '';
+  populateSubcategorySelect(product?.subcategory || '');
   document.getElementById('product-order').value = product?.order || 0;
   document.getElementById('product-active').value = product?.active === false ? 'false' : 'true';
   document.getElementById('product-image-url').value = product?.imageUrl || '';
@@ -433,9 +460,13 @@ function renderCategoriesGrid() {
   }
   grid.innerHTML = allCategories.map(c => {
     const count = allProducts.filter(p => p.categoryId === c.id && p.active !== false && p.active !== 'false').length;
+    const subs = Array.isArray(c.subcategories) && c.subcategories.length
+      ? c.subcategories.join(' · ')
+      : '';
     return `<div class="category-admin-card">
       <h4>${esc(c.title)}</h4>
       <p>${esc(c.description || '')}</p>
+      ${subs ? `<p style="font-size:0.8rem;opacity:0.75;margin:0.35rem 0;">${esc(subs)}</p>` : ''}
       <span class="badge">${count} product${count !== 1 ? 's' : ''}</span>
       <div style="margin-top:0.75rem;display:flex;gap:0.5rem;">
         <button class="admin-btn admin-btn-outline admin-btn-sm" onclick="editCategory('${c.id}')">Edit</button>

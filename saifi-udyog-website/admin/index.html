@@ -51,15 +51,29 @@
       const alertEl = document.getElementById('login-alert');
       const form = document.getElementById('login-form');
 
-      if (!FIREBASE_ENABLED) {
+      if (typeof firebase === 'undefined') {
+        alertEl.style.display = 'block';
+        alertEl.innerHTML = 'Firebase scripts did not load (network/CDN blocked). Open this page on a network that allows <code>gstatic.com</code>, or use a personal machine. Then hard-refresh.';
+        form.querySelector('button').disabled = true;
+        return;
+      }
+
+      if (typeof FIREBASE_ENABLED === 'undefined' || !FIREBASE_ENABLED) {
         alertEl.style.display = 'block';
         alertEl.innerHTML = 'Firebase not configured. See <a href="setup.html">Setup Help</a>.';
         form.querySelector('button').disabled = true;
         return;
       }
 
-      initFirebase();
-      onAuthChange(user => { if (user) window.location.href = 'dashboard.html'; });
+      try {
+        initFirebase();
+        onAuthChange(user => { if (user) window.location.href = 'dashboard.html'; });
+      } catch (err) {
+        alertEl.style.display = 'block';
+        alertEl.textContent = 'Firebase init failed: ' + (err.message || err);
+        form.querySelector('button').disabled = true;
+        return;
+      }
 
       form.addEventListener('submit', async (e) => {
         e.preventDefault();
@@ -71,12 +85,14 @@
           window.location.href = 'dashboard.html';
         } catch (err) {
           alertEl.style.display = 'block';
-          if (err.code === 'auth/invalid-credential') {
+          if (err.code === 'auth/invalid-credential' || err.code === 'auth/wrong-password' || err.code === 'auth/user-not-found') {
             alertEl.textContent = 'Invalid email or password.';
           } else if (err.code === 'auth/configuration-not-found') {
             alertEl.innerHTML = '<strong>Enable Authentication in Firebase Console</strong><br>Authentication → Get started → Enable Email/Password.<br><a href="setup.html">Setup guide</a>';
+          } else if (err.code === 'auth/network-request-failed') {
+            alertEl.textContent = 'Network blocked talking to Firebase. Use a network that allows Firebase, then try again.';
           } else {
-            alertEl.textContent = err.message;
+            alertEl.textContent = err.message || String(err);
           }
           btn.disabled = false;
           btn.textContent = 'Sign In';
