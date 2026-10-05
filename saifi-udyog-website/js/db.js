@@ -12,21 +12,118 @@ let storage = null;
 let auth = null;
 
 const DEFAULT_CATEGORIES = [
-  { id: 'sofas', title: 'Sofas', description: 'Sofa sets and seating for living rooms and lounges.', order: 1 },
-  { id: 'beds', title: 'Beds', description: 'Beds and bedroom furniture for restful spaces.', order: 2 },
-  { id: 'chairs', title: 'Chairs', description: 'Chairs for home, lounge and waiting areas.', order: 3 },
-  { id: 'tables', title: 'Tables', description: 'Dining, coffee and side tables for every room.', order: 4 },
-  { id: 'office-furniture', title: 'Office Furniture', description: 'Desks, chairs and furniture for productive workspaces.', order: 5 },
-  { id: 'workstations', title: 'Workstations', description: 'Modular and linear workstations for offices.', order: 6 },
-  { id: 'cabinets', title: 'Cabinets', description: 'Storage cabinets, cupboards and display units.', order: 7 },
-  { id: 'custom-furniture', title: 'Custom Furniture', description: 'Bespoke furniture made to your requirements.', order: 8 }
+  {
+    id: 'home-furniture',
+    title: 'Home Furniture',
+    description: 'Beds, sofas and side tables for every room at home.',
+    order: 1,
+    subcategories: ['Bed', 'Sofa', 'Side tables']
+  },
+  {
+    id: 'office-furniture',
+    title: 'Office Furniture',
+    description: 'Chairs, tables and counters for productive workspaces.',
+    order: 2,
+    subcategories: ['Chair', 'Table', 'Counter']
+  },
+  {
+    id: 'pvc-furniture',
+    title: 'PVC Furniture',
+    description: 'Durable PVC chairs and tables for indoor and outdoor use.',
+    order: 3,
+    subcategories: ['Chair', 'Table']
+  },
+  {
+    id: 'restaurant-furniture',
+    title: 'Restaurant Furniture',
+    description: 'Table tops and seating built for hospitality spaces.',
+    order: 4,
+    subcategories: ['Table Tops', 'Sofa chair']
+  },
+  {
+    id: 'almirah',
+    title: 'Almirah',
+    description: 'Single-door and multi-door storage almirahs.',
+    order: 5,
+    subcategories: ['Single door', 'Multi door']
+  },
+  {
+    id: 'tent-furniture',
+    title: 'Tent Furniture',
+    description: 'Chairs, tables and stage setups for tents and events.',
+    order: 6,
+    subcategories: ['Chair', 'Table', 'Stage']
+  },
+  {
+    id: 'hospital',
+    title: 'Hospital',
+    description: 'Beds, tables and counters for healthcare spaces.',
+    order: 7,
+    subcategories: ['Bed', 'Table', 'Counter']
+  },
+  {
+    id: 'school-furniture',
+    title: 'School Furniture',
+    description: 'Chairs, tables and desks for classrooms and campuses.',
+    order: 8,
+    subcategories: ['Chair', 'Table', 'Desk']
+  }
+];
+
+function sampleImageSlug(name) {
+  return String(name || '')
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-|-$/g, '');
+}
+
+/** Local sample art until admin uploads a real Firebase product photo. */
+const SAMPLE_IMAGE_MAP = {
+  'home-furniture--bed': '/images/samples/bed.svg',
+  'home-furniture--sofa': '/images/samples/sofa.svg',
+  'home-furniture--side-tables': '/images/samples/side-tables.svg',
+  'office-furniture--chair': '/images/samples/chair.svg',
+  'office-furniture--table': '/images/samples/table.svg',
+  'office-furniture--counter': '/images/samples/counter.svg',
+  'pvc-furniture--chair': '/images/samples/pvc-chair.svg',
+  'pvc-furniture--table': '/images/samples/pvc-table.svg',
+  'restaurant-furniture--table-tops': '/images/samples/table-tops.svg',
+  'restaurant-furniture--sofa-chair': '/images/samples/sofa-chair.svg',
+  'almirah--single-door': '/images/samples/almirah-single.svg',
+  'almirah--multi-door': '/images/samples/almirah-multi.svg',
+  'tent-furniture--chair': '/images/samples/chair.svg',
+  'tent-furniture--table': '/images/samples/table.svg',
+  'tent-furniture--stage': '/images/samples/stage.svg',
+  'hospital--bed': '/images/samples/hospital-bed.svg',
+  'hospital--table': '/images/samples/table.svg',
+  'hospital--counter': '/images/samples/counter.svg',
+  'school-furniture--chair': '/images/samples/school-chair.svg',
+  'school-furniture--table': '/images/samples/table.svg',
+  'school-furniture--desk': '/images/samples/desk.svg'
+};
+
+function sampleImageFor(categoryId, subName) {
+  const key = `${categoryId || ''}--${sampleImageSlug(subName)}`;
+  return SAMPLE_IMAGE_MAP[key] || '/images/samples/table.svg';
+}
+
+function sampleImageForCategory(categoryId) {
+  const cat = DEFAULT_CATEGORIES.find(c => c.id === categoryId);
+  const first = cat && Array.isArray(cat.subcategories) ? cat.subcategories[0] : 'table';
+  return sampleImageFor(categoryId, first);
+}
+
+/** Old default category ids replaced by the list above — removed on admin sync */
+const OBSOLETE_CATEGORY_IDS = [
+  'sofas', 'beds', 'chairs', 'tables', 'workstations', 'cabinets',
+  'custom-furniture', 'sofa-seating', 'other-furniture'
 ];
 
 const MAX_IMAGE_DATA_URL_CHARS = 450000; // keep Firestore docs safely under 1MB
 const MAX_UPLOAD_FILE_BYTES = 8 * 1024 * 1024; // 8MB original file
 
 /* ---- Public read cache (session) — cuts repeat Firestore round-trips ---- */
-const CATALOGUE_CACHE_KEY = 'saifi_catalogue_v2';
+const CATALOGUE_CACHE_KEY = 'saifi_catalogue_v4';
 const SETTINGS_CACHE_KEY = 'saifi_settings_v1';
 const PUBLIC_CACHE_TTL_MS = 5 * 60 * 1000; // 5 minutes
 let catalogueInflight = null;
@@ -169,11 +266,14 @@ async function getCategories() {
 }
 
 /**
- * Upserts the 8 default categories into Firestore (merge only — never deletes products).
- * Safe to call on every admin login.
+ * Upserts the default categories into Firestore (merge only — never deletes products).
+ * Also removes obsolete default category docs. Safe to call on every admin login.
  */
 async function ensureDefaultCategories() {
-  const fallback = DEFAULT_CATEGORIES.map(c => ({ ...c }));
+  const fallback = DEFAULT_CATEGORIES.map(c => ({
+    ...c,
+    subcategories: (c.subcategories || []).slice()
+  }));
   if (!isFirebaseReady()) return fallback;
 
   try {
@@ -184,14 +284,27 @@ async function ensureDefaultCategories() {
           title: cat.title,
           description: cat.description || '',
           order: Number(cat.order) || 0,
+          subcategories: Array.isArray(cat.subcategories) ? cat.subcategories : [],
           updatedAt: firebase.firestore.FieldValue.serverTimestamp()
         }, { merge: true });
+      });
+      OBSOLETE_CATEGORY_IDS.forEach(id => {
+        batch.delete(db.collection('categories').doc(id));
       });
       await batch.commit();
     }
 
     const existing = await getCategories();
-    return existing.length ? existing : fallback;
+    // Prefer cloud list, but attach default subcategories when missing
+    if (!existing.length) return fallback;
+    const byId = new Map(DEFAULT_CATEGORIES.map(c => [c.id, c]));
+    return existing.map(cat => {
+      const def = byId.get(cat.id);
+      const subs = Array.isArray(cat.subcategories) && cat.subcategories.length
+        ? cat.subcategories
+        : (def && def.subcategories) || [];
+      return { ...cat, subcategories: subs };
+    }).sort((a, b) => (Number(a.order) || 0) - (Number(b.order) || 0));
   } catch (err) {
     console.warn('ensureDefaultCategories fallback:', err);
     return fallback;
@@ -204,12 +317,16 @@ async function saveCategory(category) {
   requireAuth();
   const id = String(category.id || '').trim();
   if (!id || !category.title) throw new Error('Category name is required.');
-  await db.collection('categories').doc(id).set({
+  const payload = {
     title: String(category.title).trim(),
     description: String(category.description || '').trim(),
     order: Number(category.order) || 0,
     updatedAt: firebase.firestore.FieldValue.serverTimestamp()
-  }, { merge: true });
+  };
+  if (Array.isArray(category.subcategories)) {
+    payload.subcategories = category.subcategories.map(s => String(s || '').trim()).filter(Boolean);
+  }
+  await db.collection('categories').doc(id).set(payload, { merge: true });
   invalidatePublicCaches();
 }
 
@@ -325,7 +442,7 @@ function isProbablyImageFile(file) {
 }
 
 function compressImageFile(file, maxWidth, quality) {
-  maxWidth = maxWidth || 900;
+  maxWidth = maxWidth || 1200;
   quality = quality || 0.68;
 
   return new Promise((resolve, reject) => {
